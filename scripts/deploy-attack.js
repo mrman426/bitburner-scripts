@@ -33,12 +33,17 @@ export async function main(ns) {
     // Function to get available RAM on a server
     function getAvailableRam(server) {
         const maxRam = ns.getServerMaxRam(server);
-        const usedRam = ns.getServerUsedRam(server);
+        const usedRam = ns.ps(server).reduce((sum, process) => sum + process.threads * ns.getScriptRam(process.filename), 0);
         return maxRam - usedRam;
     }
 
     // Function to deploy to a server
     async function deployToServer(server, target) {
+        // Skip if we don't have root access
+        if (!ns.hasRootAccess(server)) {
+            return 0;
+        }
+
         const availableRam = getAvailableRam(server);
         const scriptRam = ns.getScriptRam("attack.js");
         const threads = Math.floor(availableRam / scriptRam);
@@ -49,8 +54,13 @@ export async function main(ns) {
                 await ns.scp("attack.js", server);
             }
             
-            // Kill any existing scripts
-            ns.killall(server);
+            // Only kill existing attack scripts
+            const processes = ns.ps(server);
+            for (const process of processes) {
+                if (process.filename === "attack.js") {
+                    ns.kill(process.pid);
+                }
+            }
             
             // Run the attack script
             ns.exec("attack.js", server, threads, target);
@@ -119,16 +129,28 @@ export async function main(ns) {
         // Deploy to all available servers
         let totalThreads = 0;
         
-        // Deploy to home server
-        totalThreads += await deployToServer("home", targetServer);
+        // Get all servers we can use
+        const allServers = getAllServers();
+        const deployableServers = allServers.filter(server => {
+            // Skip the target server
+            if (server === targetServer) return false;
+            // Skip servers with no RAM
+            if (ns.getServerMaxRam(server) === 0) return false;
+            return true;
+        });
+
+        ns.print(`\nDeploying to ${deployableServers.length} servers:`);
         
-        // Deploy to purchased servers
-        const purchasedServers = ns.getPurchasedServers();
-        for (const server of purchasedServers) {
-            totalThreads += await deployToServer(server, targetServer);
+        // Deploy to each server
+        for (const server of deployableServers) {
+            const threads = await deployToServer(server, targetServer);
+            if (threads > 0) {
+                ns.print(`- ${server}: ${threads} threads`);
+                totalThreads += threads;
+            }
         }
         
-        ns.print(`Total deployed threads: ${totalThreads}`);
+        ns.print(`\nTotal deployed threads: ${totalThreads}`);
         
         if (totalThreads < hackThreads) {
             ns.print(`WARNING: Not enough threads (${totalThreads}/${hackThreads}) to efficiently hack ${targetServer}`);
@@ -138,9 +160,7 @@ export async function main(ns) {
         await ns.sleep(10000);
         
         // Check if we have any RAM left to attack more servers
-        const homeRam = getAvailableRam("home");
-        const purchasedRam = purchasedServers.reduce((sum, server) => sum + getAvailableRam(server), 0);
-        const totalAvailableRam = homeRam + purchasedRam;
+        const totalAvailableRam = deployableServers.reduce((sum, server) => sum + getAvailableRam(server), 0);
         
         if (totalAvailableRam < ns.getScriptRam("attack.js")) {
             ns.print("No more RAM available for attacks");
