@@ -3,7 +3,7 @@
  * @param {string[]} args - current arguments, not including "run script.js"
  * @returns {string[]} - the array of possible autocomplete options
  */
-export function autocomplete(data, flags) {
+export function autocomplete(data, args) {
 	return data.servers;
 }
 
@@ -61,43 +61,58 @@ export async function main(ns) {
 
     // Main attack loop
     while (true) {
-        // Get all servers and filter out those we can't hack
-        const allServers = getAllServers();
-        const hackableServers = allServers.filter(server => {
-            if (server === "home") return false;
-            if (!ns.hasRootAccess(server)) return false;
-            const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
-            return requiredHackingLevel <= ns.getHackingLevel();
-        });
-
-        // Find the most profitable server
-        let bestServer = null;
-        let bestScore = 0;
+        let targetServer = ns.args[0];
         
-        for (const server of hackableServers) {
-            const maxMoney = ns.getServerMaxMoney(server);
-            const minSecurity = ns.getServerMinSecurityLevel(server);
-            const score = maxMoney / minSecurity;
+        // If no target specified, find the best one
+        if (!targetServer) {
+            // Get all servers and filter out those we can't hack
+            const allServers = getAllServers();
+            const hackableServers = allServers.filter(server => {
+                if (server === "home") return false;
+                if (!ns.hasRootAccess(server)) return false;
+                const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
+                return requiredHackingLevel <= ns.getHackingLevel();
+            });
+
+            // Find the most profitable server
+            let bestScore = 0;
             
-            if (score > bestScore) {
-                bestScore = score;
-                bestServer = server;
+            for (const server of hackableServers) {
+                const maxMoney = ns.getServerMaxMoney(server);
+                const minSecurity = ns.getServerMinSecurityLevel(server);
+                const score = maxMoney / minSecurity;
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    targetServer = server;
+                }
             }
         }
-        
-        if (!bestServer) {
-            ns.print("No more servers to attack");
+
+        // Validate the target server
+        if (!targetServer) {
+            ns.print("No target server specified and no suitable servers found");
+            break;
+        }
+
+        if (!ns.hasRootAccess(targetServer)) {
+            ns.print(`ERROR: No root access on target server ${targetServer}`);
+            break;
+        }
+
+        if (ns.getServerRequiredHackingLevel(targetServer) > ns.getHackingLevel()) {
+            ns.print(`ERROR: Hacking level too low for target server ${targetServer}`);
             break;
         }
         
-        ns.print(`\nFound best target: ${bestServer}`);
-        ns.print(`Max Money: ${ns.formatNumber(ns.getServerMaxMoney(bestServer))}`);
-        ns.print(`Min Security: ${ns.getServerMinSecurityLevel(bestServer)}`);
+        ns.print(`\nTargeting server: ${targetServer}`);
+        ns.print(`Max Money: ${ns.formatNumber(ns.getServerMaxMoney(targetServer))}`);
+        ns.print(`Min Security: ${ns.getServerMinSecurityLevel(targetServer)}`);
         
         // Calculate required threads
-        const maxMoney = ns.getServerMaxMoney(bestServer);
+        const maxMoney = ns.getServerMaxMoney(targetServer);
         const hackAmount = maxMoney * 0.5;
-        const hackThreads = Math.ceil(hackAmount / (ns.hackAnalyze(bestServer) * maxMoney));
+        const hackThreads = Math.ceil(hackAmount / (ns.hackAnalyze(targetServer) * maxMoney));
         
         ns.print(`Required Threads: ${hackThreads}`);
         
@@ -105,18 +120,18 @@ export async function main(ns) {
         let totalThreads = 0;
         
         // Deploy to home server
-        totalThreads += await deployToServer("home", bestServer);
+        totalThreads += await deployToServer("home", targetServer);
         
         // Deploy to purchased servers
         const purchasedServers = ns.getPurchasedServers();
         for (const server of purchasedServers) {
-            totalThreads += await deployToServer(server, bestServer);
+            totalThreads += await deployToServer(server, targetServer);
         }
         
         ns.print(`Total deployed threads: ${totalThreads}`);
         
         if (totalThreads < hackThreads) {
-            ns.print(`WARNING: Not enough threads (${totalThreads}/${hackThreads}) to efficiently hack ${bestServer}`);
+            ns.print(`WARNING: Not enough threads (${totalThreads}/${hackThreads}) to efficiently hack ${targetServer}`);
         }
         
         // Wait for the attack to complete (roughly)
@@ -129,6 +144,11 @@ export async function main(ns) {
         
         if (totalAvailableRam < ns.getScriptRam("attack.js")) {
             ns.print("No more RAM available for attacks");
+            break;
+        }
+
+        // If target was specified as argument, only attack that one server
+        if (ns.args[0]) {
             break;
         }
     }
