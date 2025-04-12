@@ -191,10 +191,10 @@ export async function main(ns) {
 		const totalAvailableRam = deployableServers.reduce((sum, server) => sum + getAvailableRam(ns, server), 0);
 		const scriptRam = ns.getScriptRam("hack.js");
 		
-		if (totalAvailableRam < scriptRam) {
-			ns.tprint("No more RAM available for attacks");
-			break;
-		}
+		// if (totalAvailableRam < scriptRam) {
+		// 	ns.tprint("No more RAM available for attacks");
+		// 	break;
+		// }
 		
         const maxMoney = ns.getServerMaxMoney(targetServer);
         const hackPercent = ns.hackAnalyze(targetServer);
@@ -243,7 +243,8 @@ export async function main(ns) {
 			// Since servers are sorted by RAM, first server with enough RAM will be the most powerful
 			const hackServer = attackServers.find(server => {
 				const availableRam = getAvailableRam(ns, server);
-				return availableRam >= requiredHackRam;
+				//return availableRam >= requiredHackRam;
+				return availableRam >= 0;
 			});
 			
 			if (hackServer) {
