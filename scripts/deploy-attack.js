@@ -9,96 +9,95 @@ export function autocomplete(data, flags) {
 
 /** @param {NS} ns */
 export async function main(ns) {
-    const target = ns.args[0];
-    if (!target) {
-        ns.tprint("ERROR: No target specified");
+    // Get all servers we can access
+    const servers = ns.scan();
+    const purchasedServers = ns.getPurchasedServers();
+    const allServers = [...new Set([...servers, ...purchasedServers])];
+    
+    // Find the most profitable server
+    let bestServer = null;
+    let bestScore = 0;
+    
+    for (const server of allServers) {
+        // Skip home and purchased servers
+        if (server === "home" || purchasedServers.includes(server)) continue;
+        
+        // Get server info
+        const maxMoney = ns.getServerMaxMoney(server);
+        const minSecurity = ns.getServerMinSecurityLevel(server);
+        const hackLevel = ns.getServerRequiredHackingLevel(server);
+        const playerHackLevel = ns.getHackingLevel();
+        
+        // Skip if we can't hack it
+        if (hackLevel > playerHackLevel) continue;
+        
+        // Calculate score based on money and security
+        const score = maxMoney / minSecurity;
+        
+        if (score > bestScore) {
+            bestScore = score;
+            bestServer = server;
+        }
+    }
+    
+    if (!bestServer) {
+        ns.print("No suitable server found to attack");
         return;
     }
     
-    const scriptName = "attack.js";
-    const scriptRam = ns.getScriptRam(scriptName);
+    ns.print(`Found best target: ${bestServer}`);
+    ns.print(`Max Money: ${ns.formatNumber(ns.getServerMaxMoney(bestServer))}`);
+    ns.print(`Min Security: ${ns.getServerMinSecurityLevel(bestServer)}`);
     
-    // Function to get all servers within security level
-    function getAllServers() {
-        const servers = new Set();
-        const toScan = ["home"];
-        
-        while (toScan.length > 0) {
-            const server = toScan.pop();
-            if (servers.has(server)) continue;
-            servers.add(server);
-            
-            const connected = ns.scan(server);
-            for (const s of connected) {
-                if (!servers.has(s)) {
-                    toScan.push(s);
-                }
-            }
-        }
-        
-        return Array.from(servers);
-    }
-
-    // Function to open all available ports on a server
-    function openPorts(server) {
-        const programs = [
-            { name: "BruteSSH.exe", func: ns.brutessh },
-            { name: "FTPCrack.exe", func: ns.ftpcrack },
-            { name: "relaySMTP.exe", func: ns.relaysmtp },
-            { name: "HTTPWorm.exe", func: ns.httpworm },
-            { name: "SQLInject.exe", func: ns.sqlinject }
-        ];
-
-        let portsOpened = 0;
-        for (const program of programs) {
-            if (ns.fileExists(program.name, "home")) {
-                program.func(server);
-                portsOpened++;
-            }
-        }
-        return portsOpened;
-    }
+    // Calculate optimal number of attack scripts
+    const maxMoney = ns.getServerMaxMoney(bestServer);
+    const hackAmount = maxMoney * 0.5; // We want to hack 50% each time
+    const hackChance = ns.hackAnalyzeChance(bestServer);
+    const hackThreads = Math.ceil(hackAmount / (ns.hackAnalyze(bestServer) * maxMoney));
     
-    // Get all servers and filter out those we can't hack
-    const allServers = getAllServers();
-    const hackableServers = allServers.filter(server => {
-        const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
-        return requiredHackingLevel <= ns.getHackingLevel();
-    });
+    ns.print(`Hack Amount: ${ns.formatNumber(hackAmount)}`);
+    ns.print(`Hack Chance: ${(hackChance * 100).toFixed(2)}%`);
+    ns.print(`Required Threads: ${hackThreads}`);
     
-    for (const server of hackableServers) {
-        // Skip home server
-        if (server === "home") continue;
+    // Deploy attack scripts to all available servers
+    const scriptRam = ns.getScriptRam("attack.js");
+    let totalThreads = 0;
+    
+    // Function to deploy to a server
+    async function deployToServer(server) {
+        const maxRam = ns.getServerMaxRam(server);
+        const usedRam = ns.getServerUsedRam(server);
+        const availableRam = maxRam - usedRam;
+        const threads = Math.floor(availableRam / scriptRam);
         
-        // Try to nuke the server
-        if (!ns.hasRootAccess(server)) {
-            ns.tprint(`Attempting to gain root access on ${server}...`);
-            const portsOpened = openPorts(server);
-            if (portsOpened >= ns.getServerNumPortsRequired(server)) {
-                ns.nuke(server);
-                ns.tprint(`Successfully gained root access on ${server}`);
-            } else {
-                ns.tprint(`Not enough ports opened for ${server}. Need ${ns.getServerNumPortsRequired(server)} but only opened ${portsOpened}`);
+        if (threads > 0) {
+            // Copy script if needed
+            if (!ns.fileExists("attack.js", server)) {
+                await ns.scp("attack.js", server);
             }
-        }
-        
-        // If we have root access, deploy the script
-        if (ns.hasRootAccess(server)) {
-            ns.tprint(`Deploying to ${server}...`);
             
-            // Copy the script
-            await ns.scp(scriptName, server);
+            // Kill any existing scripts
+            ns.killall(server);
             
-            // Calculate how many threads we can run
-            const serverRam = ns.getServerMaxRam(server);
-            const threads = Math.floor(serverRam / scriptRam);
+            // Run the attack script
+            ns.exec("attack.js", server, threads, bestServer);
+            totalThreads += threads;
             
-            if (threads > 0) {
-                ns.tprint(`Running ${threads} threads on ${server}`);
-                ns.exec(scriptName, server, threads, target);
-            }
+            ns.print(`Deployed ${threads} threads to ${server}`);
         }
     }
     
-    ns.tprint("Deployment complete!");
+    // Deploy to home server
+    await deployToServer("home");
+    
+    // Deploy to purchased servers
+    for (const server of purchasedServers) {
+        await deployToServer(server);
+    }
+    
+    ns.print(`Total deployed threads: ${totalThreads}`);
+    
+    if (totalThreads < hackThreads) {
+        ns.print(`WARNING: Not enough threads (${totalThreads}/${hackThreads}) to efficiently hack ${bestServer}`);
+    }
 } 

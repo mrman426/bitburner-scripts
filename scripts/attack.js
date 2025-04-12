@@ -17,20 +17,46 @@ export async function main(ns) {
     }
 
     // Get server information
-    const moneyThresh = ns.getServerMaxMoney(target) * 0.75;
-    const securityThresh = ns.getServerMinSecurityLevel(target) + 5;
+    const maxMoney = ns.getServerMaxMoney(target);
+    const moneyThresh = maxMoney * 0.9; // Keep money at 90% of max
+    const minMoneyThresh = maxMoney * 0.3; // Don't hack if below 30% of max
+    const securityThresh = ns.getServerMinSecurityLevel(target) + 3; // More conservative security threshold
+
+    ns.print(`Starting attack on ${target}`);
+    ns.print(`Max Money: ${ns.formatNumber(maxMoney)}`);
+    ns.print(`Money Threshold: ${ns.formatNumber(moneyThresh)}`);
+    ns.print(`Min Money Threshold: ${ns.formatNumber(minMoneyThresh)}`);
+    ns.print(`Security Threshold: ${securityThresh.toFixed(2)}`);
 
     // Infinite loop to continuously attack the server
     while (true) {
-        if (ns.getServerSecurityLevel(target) > securityThresh) {
+        const currentMoney = ns.getServerMoneyAvailable(target);
+        const currentSecurity = ns.getServerSecurityLevel(target);
+        
+        ns.print(`\n${target} Status:`);
+        ns.print(`Money: ${ns.formatNumber(currentMoney)} (${(currentMoney/maxMoney*100).toFixed(1)}% of max)`);
+        ns.print(`Security: ${currentSecurity.toFixed(2)} (min: ${ns.getServerMinSecurityLevel(target).toFixed(2)})`);
+
+        if (currentSecurity > securityThresh) {
             // If security is too high, weaken it
+            ns.print(`Security too high (${currentSecurity.toFixed(2)} > ${securityThresh.toFixed(2)}), weakening...`);
             await ns.weaken(target);
-        } else if (ns.getServerMoneyAvailable(target) < moneyThresh) {
+            ns.print(`Weakened ${target}. New security: ${ns.getServerSecurityLevel(target).toFixed(2)}`);
+        } else if (currentMoney < moneyThresh) {
             // If money is below threshold, grow it
-            await ns.grow(target);
+            ns.print(`Money below threshold (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(moneyThresh)}), growing...`);
+            const growth = await ns.grow(target);
+            ns.print(`Grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}`);
+        } else if (currentMoney > minMoneyThresh) {
+            // Only hack if money is above minimum threshold
+            ns.print(`Money above minimum threshold, hacking...`);
+            const stolen = await ns.hack(target);
+            ns.print(`Stole ${ns.formatNumber(stolen)} from ${target}`);
         } else {
-            // If security is low and money is high, hack it
-            await ns.hack(target);
+            // If money is too low, focus on growing
+            ns.print(`Money too low (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(minMoneyThresh)}), growing...`);
+            const growth = await ns.grow(target);
+            ns.print(`Grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}`);
         }
     }
 } 
