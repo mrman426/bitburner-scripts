@@ -28,12 +28,34 @@ export async function main(ns) {
     const availableSlots = maxServers - existingServers.length;
 
     if (availableSlots <= 0) {
-        ns.tprint("Maximum number of servers (" + maxServers + ") already purchased");
-        return;
+        // Find the server with the least RAM (only considering servers with our prefix)
+        let worstServer = null;
+        let minRam = Infinity;
+        
+        for (const server of existingServers) {
+            // Only consider servers that match our prefix pattern
+            if (server.startsWith(serverPrefix)) {
+                const ram = ns.getServerMaxRam(server);
+                if (ram < minRam) {
+                    minRam = ram;
+                    worstServer = server;
+                }
+            }
+        }
+        
+        if (worstServer && minRam < maxAffordableRam) {
+            ns.tprint(`Selling worst server ${worstServer} with ${minRam}GB RAM to make room for a better one`);
+            ns.deleteServer(worstServer);
+            // Update the existing servers list
+            existingServers.splice(existingServers.indexOf(worstServer), 1);
+        } else {
+            ns.tprint("All existing servers have more RAM than what we can afford. No changes made.");
+            return;
+        }
     }
 
     // Calculate how many servers we can actually buy (limited by slots and money)
-    const serversToBuy = Math.min(Math.floor(money / maxAffordableCost), availableSlots);
+    const serversToBuy = Math.min(Math.floor(money / maxAffordableCost), maxServers - existingServers.length);
     const totalCost = serversToBuy * maxAffordableCost;
 
     if (serversToBuy > 0) {
