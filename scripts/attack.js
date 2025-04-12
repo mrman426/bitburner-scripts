@@ -1,3 +1,12 @@
+/**
+ * @param {AutocompleteData} data - context about the game, useful when autocompleting
+ * @param {string[]} args - current arguments, not including "run script.js"
+ * @returns {string[]} - the array of possible autocomplete options
+ */
+export function autocomplete(data, flags) {
+	return data.servers;
+}
+
 /** @param {NS} ns */
 /** @param {string} target */
 export async function main(ns) {

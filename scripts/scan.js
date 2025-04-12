@@ -9,14 +9,26 @@ export async function main(ns) {
         return;
     }
 
-    // If a host is specified, show only that host's details
-    if (args.host) {
-        const server = args.host;
-        if (!ns.serverExists(server)) {
-            ns.tprint(`Server '${server}' does not exist!`);
+    // Autocomplete functionality
+    if (args.host && args.host !== "") {
+        const allServers = scanAllServers(ns);
+        const matches = allServers.filter(server => 
+            server.toLowerCase().includes(args.host.toLowerCase())
+        );
+
+        if (matches.length === 0) {
+            ns.tprint(`No servers found matching '${args.host}'`);
             return;
         }
 
+        if (matches.length > 1) {
+            ns.tprint("\n=== Matching Servers ===");
+            matches.forEach(server => ns.tprint(`- ${server}`));
+            return;
+        }
+
+        // If we have exactly one match, proceed with showing its details
+        const server = matches[0];
         const serverInfo = ns.getServer(server);
         const path = findPathToServer(ns, server).join(" -> ");
         
