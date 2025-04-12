@@ -18,7 +18,7 @@ export async function main(ns) {
 	// Parse command line arguments
 	const useAllServers = ns.args.includes("--all-servers");
 	const usePurchasedOnly = ns.args.includes("--purchased-only");
-	let targetServer = ns.args[0] || null;
+	let targetServer = null;
 	
 	// Track attacked servers and their cooldown times
 	const attackedServers = new Map(); // server -> last attack time
@@ -308,11 +308,6 @@ export async function main(ns) {
 
 		// Mark the server as attacked
 		markServerAttacked(targetServer);
-
-		// If target was specified as argument, only attack that one server
-		if (ns.args[0]) {
-			break;
-		}
 
 		// Longer delay between targets to reduce lag
 		await ns.sleep(10000); // 10 second delay
