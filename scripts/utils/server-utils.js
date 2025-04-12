@@ -31,7 +31,7 @@ export function getDeployableServers(ns, targetServer, useAllServers = false, us
         if (server === targetServer) return false;
         
         // Skip home server
-        if (usePurchasedOnly && server === "home") return true;
+        if (server === "home") return true;
         
         // If using purchased servers only, only include servers that start with "pserv-"
         if (usePurchasedOnly && !server.startsWith("pserv-")) return false;
