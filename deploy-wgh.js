@@ -28,17 +28,21 @@ export async function main(ns) {
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     const allServers = getAllServers(ns);
-    const hackableServers = allServers.filter(server => {
-        const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
+    const deployServers = allServers
+        .filter(server => {
+            // Only use our own servers
+            if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
 
-        // Only use our own servers
-        if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
+            // Only use hacked servers not our own
+            if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
 
-        // Only use hacked servers not our own
-        if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
-
-        return requiredHackingLevel <= ns.getHackingLevel();
-    });
+            return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
+        })
+        .sort((a, b) => {
+            const ramA = getServerAvailableRam(ns, a);
+            const ramB = getServerAvailableRam(ns, b);
+            return ramB - ramA;
+        });
 
     // Calculate required threads for each operation
     const requiredThreads = {
@@ -56,7 +60,7 @@ export async function main(ns) {
     let remainingThreads = { ...requiredThreads };
     let totalDeployed = { hack: 0, grow: 0, weaken: 0 };
     
-    for (const server of hackableServers) {
+    for (const server of deployServers) {
         // Try to nuke the server if needed
         if (!ns.hasRootAccess(server)) {
             ns.tprint(`Attempting to gain root access on ${server}...`);
