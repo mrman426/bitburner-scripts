@@ -42,8 +42,6 @@ export async function main(ns) {
         
         // If we have root access, deploy the script
         if (ns.hasRootAccess(server)) {
-            ns.tprint(`Deploying to ${server}...`);
-            
             // Copy the script
             await ns.scp("attack.js", server);
             
