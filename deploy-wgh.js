@@ -7,11 +7,14 @@ import { getRunningAttacks } from "./utils/attack-utils.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose"] : data.servers;
+    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked"] : data.servers;
 }
 
 /** @param {NS} ns */
 export async function main(ns) {
+    const verbose = ns.args.includes("--verbose");
+    const verboseHacked = ns.args.includes("--verbose-hacked");
+
     // Get script RAM requirements
     const scriptRams = {
         hack: ns.getScriptRam("hack.js"),
@@ -20,7 +23,6 @@ export async function main(ns) {
     };
     
     // Get all servers and filter out those we can't hack
-    const verbose = ns.args.includes("--verbose");
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     const allServers = getAllServers(ns);
@@ -106,10 +108,11 @@ export async function main(ns) {
                 if (pid > 0) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
+                    remainingRam -= weakenThreads * scriptRams.weaken;
+
                     if (verbose) {
                         ns.tprint(`Deployed ${weakenThreads} weaken threads to ${server} (${remainingRam}GB RAM available)`);
                     }
-                    remainingRam -= weakenThreads * scriptRams.weaken;
                 }
             }
 
@@ -121,10 +124,11 @@ export async function main(ns) {
                 if (pid > 0) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
+                    remainingRam -= growThreads * scriptRams.grow;
+
                     if (verbose){
                         ns.tprint(`Deployed ${growThreads} grow threads to ${server} (${remainingRam}GB RAM available)`);
                     }   
-                    remainingRam -= growThreads * scriptRams.grow;
                 }
             }
 
@@ -132,10 +136,12 @@ export async function main(ns) {
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, Math.max(weakenTime, growTime), verbose);
+                const pid = ns.exec("hack.js", server, hackThreads, target, Math.max(weakenTime, growTime), verboseHacked);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
+                    remainingRam -= growThreads * scriptRams.grow;
+
                     if (verbose){
                         ns.tprint(`Deployed ${hackThreads} hack threads to ${server} (${remainingRam}GB RAM available)`);
                     }
