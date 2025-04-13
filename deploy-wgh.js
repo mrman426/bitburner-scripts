@@ -47,12 +47,7 @@ export async function main(ns) {
         // Get all servers that could be potential targets
         const potentialTargets = allServers.filter(server => {
             if (ns.getServerMaxMoney(server) <= 0) return false;
-            if (ns.getServerRequiredHackingLevel(server) > ns.getHackingLevel()) return false;
-
-            // Attempt to nuke the server
-            hackServer(ns, server)
-
-            return true;
+            return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
         });
 
         // Get running attacks to avoid targeting servers already being attacked
@@ -90,7 +85,7 @@ export async function main(ns) {
             .filter(server => {
                 if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
                 if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
-                return ns.hasRootAccess(server);
+                return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
             })
             .sort((a, b) => {
                 const ramA = getServerAvailableRam(ns, a);
@@ -103,6 +98,12 @@ export async function main(ns) {
         let totalDeployed = { hack: 0, grow: 0, weaken: 0 };
         
         for (const server of deployServers) {
+            // Try to nuke the server
+            hackServer(ns, server)
+            if (!ns.hasRootAccess(server)) {
+                return;
+            }
+
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
             

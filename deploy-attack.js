@@ -27,36 +27,34 @@ export async function main(ns) {
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     const allServers = getAllServers(ns);
-    const hackableServers = allServers.filter(server => {
-        const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
-
+    const deployServers = allServers.filter(server => {
         // Only use our own servers
         if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
 
         // Only use hacked servers not our own
         if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
 
-        return requiredHackingLevel <= ns.getHackingLevel();
+        return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
     });
     
-    for (const server of hackableServers) {
+    for (const server of deployServers) {
         // Try to nuke the server
         hackServer(ns, server)
+        if (!ns.hasRootAccess(server)) {
+            return;
+        }
+
+        // Copy the script
+        await ns.scp("attack.js", server);
         
-        // If we have root access, deploy the script
-        if (ns.hasRootAccess(server)) {
-            // Copy the script
-            await ns.scp("attack.js", server);
-            
-            // Calculate how many threads we can run
-            const serverRam = getServerAvailableRam(ns, server);
-            const threads = Math.floor(serverRam / scriptRam);
-            
-            if (threads > 0) {
-                log(ns, `Running ${threads} threads on ${server}`, verbose);
-                ns.exec("attack.js", server, threads, target);
-                await ns.sleep(500);
-            }
+        // Calculate how many threads we can run
+        const serverRam = getServerAvailableRam(ns, server);
+        const threads = Math.floor(serverRam / scriptRam);
+        
+        if (threads > 0) {
+            log(ns, `Running ${threads} threads on ${server}`, verbose);
+            ns.exec("attack.js", server, threads, target);
+            await ns.sleep(500);
         }
     }
     
