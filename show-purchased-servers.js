@@ -1,8 +1,8 @@
+import { getAvailableRam } from "./utils/server.js";
 import { listView } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
-    // Get all purchased servers
     const purchasedServers = ns.getPurchasedServers();
     
     if (purchasedServers.length === 0) {
@@ -10,32 +10,17 @@ export async function main(ns) {
         return;
     }
 
-    // Sort servers by RAM (descending order)
-    purchasedServers.sort((a, b) => ns.getServerMaxRam(b) - ns.getServerMaxRam(a));
+    const serverData = purchasedServers
+        .sort((a, b) => ns.getServerMaxRam(b) - ns.getServerMaxRam(a))
+        .map(server => {
+            const maxRam = ns.getServerMaxRam(server);
+            return {
+                "Server Name": server,
+                "RAM": `${maxRam}GB`,
+                "Free RAM": `${getAvailableRam(ns, server).toFixed(2)}GB`,
+                "Cost": `$${ns.formatNumber(ns.getPurchasedServerCost(maxRam))}`
+            };
+        });
     
-    let totalRam = 0;
-    let totalUsedRam = 0;
-    let totalCost = 0;
-    
-    // Prepare data for listView
-    const serverData = purchasedServers.map(server => {
-        const maxRam = ns.getServerMaxRam(server);
-        const usedRam = ns.getServerUsedRam(server);
-        const cost = ns.getPurchasedServerCost(maxRam);
-        
-        // Update totals
-        totalRam += maxRam;
-        totalUsedRam += usedRam;
-        totalCost += cost;
-        
-        return {
-            "Server Name": server,
-            "RAM": `${maxRam}GB`,
-            "Used RAM": `${usedRam.toFixed(2)}GB`,
-            "Cost": `$${ns.formatNumber(cost)}`
-        };
-    });
-    
-    // Print header and formatted table
     ns.tprint("\n=== Purchased Servers ===\n" + listView(serverData));
 } 

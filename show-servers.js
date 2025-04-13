@@ -55,7 +55,6 @@ export async function main(ns) {
         return;
     }
 
-    // Autocomplete functionality
     if (target) {
         const matches = servers.filter(server => 
             server.toLowerCase().includes(target.toLowerCase())
@@ -75,7 +74,7 @@ export async function main(ns) {
         // If we have exactly one match, proceed with showing its details
         const server = matches[0];
         const serverInfo = ns.getServer(server);
-        const path = findPathToServer(ns, server).join(" -> ");
+        const path = findPathToServer(ns, server).join("; connect ");
         const threads = {
             weaken: calculateRequiredThreads(ns, server, 'weaken'),
             grow: calculateRequiredThreads(ns, server, 'grow'),
@@ -104,7 +103,6 @@ export async function main(ns) {
         .filter(server => server !== "home" && !server.startsWith("pserv-"))
         .map(server => {
             const serverInfo = ns.getServer(server);
-            const path = findPathToServer(ns, server).join(" -> ");
             return {
                 "Server": server,
                 "Security": serverInfo.hackDifficulty.toFixed(2),
