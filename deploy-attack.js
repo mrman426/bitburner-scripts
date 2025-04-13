@@ -19,15 +19,12 @@ export async function main(ns) {
     }
 
     const verbose = ns.args.includes("--verbose");
-    const verboseHacked = ns.args.includes("--verbose-hacked");
-
     const scriptRam = ns.getScriptRam("attack.js");
     
     // Get all servers and filter out those we can't hack
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
-    const allServers = getAllServers(ns);
-    const deployServers = allServers.filter(server => {
+    const deployServers = getAllServers(ns).filter(server => {
         // Only use our own servers
         if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
 
@@ -36,11 +33,11 @@ export async function main(ns) {
 
         return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
     });
-    
+
     for (const server of deployServers) {
         // Try to nuke the server
-        hackServer(ns, server)
-        if (!ns.hasRootAccess(server)) {
+        ns.tprint(server);
+        if (!ns.hasRootAccess(server) && !hackServer(ns, server)) {
             return;
         }
 

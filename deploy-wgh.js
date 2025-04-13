@@ -86,11 +86,10 @@ export async function main(ns) {
         
         for (const server of deployServers) {
             // Try to nuke the server
-            hackServer(ns, server)
-            if (!ns.hasRootAccess(server)) {
+            if (!ns.hasRootAccess(server) && !hackServer(ns, server)) {
                 return;
             }
-
+    
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
             

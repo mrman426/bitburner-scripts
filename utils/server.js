@@ -113,6 +113,7 @@ export async function hackServer(ns, server) {
         ns.tprint(`Gained root access on ${server}`);
         return true;
     } else {
+        //ns.tprint(`Failed to gain root access on ${server}`);
         return false;
     }
 }
