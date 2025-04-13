@@ -1,5 +1,3 @@
-import { getRunningAttacks } from "./attack-utils.js";
-
 /** 
  * @param {NS} ns 
  * @param boolean verbose 

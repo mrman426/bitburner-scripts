@@ -1,5 +1,5 @@
-import { getAllServers, hackServer, getServerAvailableRam } from "./utils/server-utils.js";
-import { log } from "./utils/console-utils.js";
+import { getAllServers, hackServer, getServerAvailableRam } from "./utils/server.js";
+import { log } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
