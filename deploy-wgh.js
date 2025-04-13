@@ -51,6 +51,11 @@ export async function main(ns) {
         weaken: calculateRequiredThreads(ns, target, 'weaken')
     };
 
+    // Calculate timing for operations
+    const weakenTime = ns.getWeakenTime(target);
+    const growTime = ns.getGrowTime(target);
+    const hackTime = ns.getHackTime(target);
+
     ns.tprint(`\nRequired threads for ${target}:`);
     ns.tprint(`Hack: ${requiredThreads.hack}`);
     ns.tprint(`Grow: ${requiredThreads.grow}`);
@@ -63,7 +68,6 @@ export async function main(ns) {
     for (const server of deployServers) {
         // Try to nuke the server if needed
         if (!ns.hasRootAccess(server)) {
-            ns.tprint(`Attempting to gain root access on ${server}...`);
             if (hackServer(ns, server)) {
                 ns.tprint(`Successfully gained root access on ${server}`);
             } else {
@@ -81,7 +85,7 @@ export async function main(ns) {
             const weakenThreads = Math.min(remainingThreads.weaken, Math.floor(remainingRam / scriptRams.weaken));
             if (weakenThreads > 0) {
                 await ns.scp("weaken.js", server);
-                const pid = ns.exec("weaken.js", server, weakenThreads, target);
+                const pid = ns.exec("weaken.js", server, weakenThreads, target, 0); // No sleep time needed for weaken
                 if (pid > 0) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
@@ -94,7 +98,7 @@ export async function main(ns) {
             const growThreads = Math.min(remainingThreads.grow, Math.floor(remainingRam / scriptRams.grow));
             if (growThreads > 0) {
                 await ns.scp("grow.js", server);
-                const pid = ns.exec("grow.js", server, growThreads, target);
+                const pid = ns.exec("grow.js", server, growThreads, target, 0); // No sleep time needed for grow
                 if (pid > 0) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
@@ -103,11 +107,11 @@ export async function main(ns) {
                 }
             }
 
-            // Finally deploy hack
+            // Finally deploy hack with sleep time to wait for weaken and grow
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target);
+                const pid = ns.exec("hack.js", server, hackThreads, target, Math.max(weakenTime, growTime));
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
@@ -115,7 +119,7 @@ export async function main(ns) {
                 }
             }
 
-            await ns.sleep(500);
+            await ns.sleep(200);
         }
     }
     
@@ -125,6 +129,6 @@ export async function main(ns) {
     ns.tprint(`Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`);
     
     if (Object.values(remainingThreads).some(threads => threads > 0)) {
-        ns.tprint("\nWARNING: Not all required threads could be deployed due to RAM limitations");
+        ns.tprint("WARNING: Not all required threads could be deployed due to RAM limitations");
     }
 } 
