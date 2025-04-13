@@ -36,7 +36,6 @@ export async function main(ns) {
 
     for (const server of deployServers) {
         // Try to nuke the server
-        ns.tprint(server);
         if (!ns.hasRootAccess(server) && !hackServer(ns, server)) {
             return;
         }
