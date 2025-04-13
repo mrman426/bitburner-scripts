@@ -38,7 +38,7 @@ export async function main(ns) {
         const currentMoney = ns.getServerMoneyAvailable(target);
         const currentSecurity = ns.getServerSecurityLevel(target);
         
-        ns.print(`====================================================\n${target} Status:`);
+        ns.print(`====================================================`);
         ns.print(`Money: ${ns.formatNumber(currentMoney)} (${(currentMoney/maxMoney*100).toFixed(1)}% of max)`);
         ns.print(`Security: ${currentSecurity.toFixed(2)} (${(currentSecurity/minSecurity*100).toFixed(1)}% of min)`);
 
