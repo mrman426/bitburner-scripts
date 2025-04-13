@@ -16,6 +16,7 @@ export async function main(ns) {
     ns.disableLog("getServerMoneyAvailable")
     ns.disableLog("getServerSecurityLevel")
 
+    const hostname = ns.getHostname();
     const target = ns.args[0];
     if (!target) {
         ns.tprint("ERROR: No target specified");
@@ -37,7 +38,7 @@ export async function main(ns) {
         const currentMoney = ns.getServerMoneyAvailable(target);
         const currentSecurity = ns.getServerSecurityLevel(target);
         
-        ns.print(`\n====================================================\n${target} Status:`);
+        ns.print(`====================================================\n${target} Status:`);
         ns.print(`Money: ${ns.formatNumber(currentMoney)} (${(currentMoney/maxMoney*100).toFixed(1)}% of max)`);
         ns.print(`Security: ${currentSecurity.toFixed(2)} (${(currentSecurity/minSecurity*100).toFixed(1)}% of min)`);
 
@@ -45,17 +46,17 @@ export async function main(ns) {
             // If security is too high, weaken it
             ns.print(`WARNING: Security too high (${currentSecurity.toFixed(2)} > ${securityThresh.toFixed(2)}), weakening...`);
             await ns.weaken(target);
-            ns.tprint(`Weakened ${target}. New security: ${currentSecurity.toFixed(2)}`);
+            ns.tprint(`${hostname} weakened ${target}. New security: ${currentSecurity.toFixed(2)}`);
         } else if (currentMoney < moneyThresh) {
             // If money is below threshold, grow it
             ns.print(`WARNING: Money below threshold (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(moneyThresh)}), growing...`);
             const growth = await ns.grow(target);
-            ns.tprint(`Grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(currentMoney)}`);
+            ns.tprint(`${hostname} grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(currentMoney)}`);
         } else {
             // Only hack if money is above minimum threshold
             ns.print(`INFO: Money above minimum threshold, hacking...`);
             const stolen = await ns.hack(target);
-            ns.tprint(`Stole ${ns.formatNumber(stolen)} from ${target}`);
+            ns.tprint(`${hostname} stole ${ns.formatNumber(stolen)} from ${target}`);
         }
     }
 } 
