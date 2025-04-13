@@ -1,7 +1,6 @@
 /** @param {NS} ns */
 export async function main(ns) {
-    const loop = ns.args[0];
-    do {
+    while (true) {
         await ns.share();
-    } while (loop);
+    }
 } 

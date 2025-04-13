@@ -139,18 +139,6 @@ export async function main(ns) {
             await ns.sleep(30000);
         }
 
-        // Run share.js on servers with remaining RAM
-        for (const server of deployServers) {
-            const serverRam = getServerAvailableRam(ns, server);
-            if (serverRam > 0) {
-                const shareThreads = Math.floor(serverRam / ns.getScriptRam("share.js"));
-                if (shareThreads > 0) {
-                    await ns.scp("share.js", server);
-                    ns.exec("share.js", server, shareThreads);
-                }
-            }
-        }
-
         // Small delay between target selections to prevent overwhelming the system
         await ns.sleep(1000);
     }
