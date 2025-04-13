@@ -1,5 +1,6 @@
 import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores } from "./utils/server-utils.js";
 import { getRunningAttacks } from "./utils/attack-utils.js";
+import { log } from "./utils/console-utils.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -12,6 +13,21 @@ export function autocomplete(data, args) {
 
 /** @param {NS} ns */
 export async function main(ns) {
+    ns.disableLog("disableLog")
+    ns.disableLog("sleep")
+    ns.disableLog("getServerMaxMoney")
+    ns.disableLog("getServerMinSecurityLevel")
+    ns.disableLog("getServerMoneyAvailable")
+    ns.disableLog("getServerSecurityLevel")
+    ns.disableLog("getServerMaxRam")
+    ns.disableLog("getServerUsedRam")
+    ns.disableLog("getServerGrowth")
+    ns.disableLog("getHackingLevel")
+    ns.disableLog("getServerRequiredHackingLevel")
+    ns.disableLog("scan")
+    ns.disableLog("scp")
+    ns.disableLog("exec")
+
     const verbose = ns.args.includes("--verbose");
     const verboseHacked = ns.args.includes("--verbose-hacked");
 
@@ -48,8 +64,9 @@ export async function main(ns) {
             .sort((a, b) => b.score - a.score);
 
         if (serverScores.length === 0) {
-            ns.tprint("No suitable targets found. Waiting 60 seconds before retrying...");
-            await ns.sleep(60000);
+            log(ns, "No suitable targets found. Waiting 20 seconds before retrying...", verbose);
+            await ns.sleep(20000);
+
             continue;
         }
 
@@ -67,14 +84,12 @@ export async function main(ns) {
         const growTime = ns.getGrowTime(target);
         const hackTime = ns.getHackTime(target);
 
-        if (verbose){
-            ns.tprint(`\nSelected target: ${target}`);
-            ns.tprint(`Score: ${serverScores[0].score.toFixed(2)}`);
-            ns.tprint(`Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}`);
-            ns.tprint(`Min Security: ${serverScores[0].minSecurity.toFixed(2)}`);
-            ns.tprint(`Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s`);
-            ns.tprint(`Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`);
-        }
+        log(ns, `========================================\nSelected target: ${target}`, verbose);
+        log(ns, `Score: ${serverScores[0].score.toFixed(2)}`, verbose);
+        log(ns, `Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}`, verbose);
+        log(ns, `Min Security: ${serverScores[0].minSecurity.toFixed(2)}`, verbose);
+        log(ns, `Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s`, verbose);
+        log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`, verbose);
         
         // Get deployable servers
         const deployServers = allServers
@@ -106,10 +121,7 @@ export async function main(ns) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
                     remainingRam -= weakenThreads * scriptRams.weaken;
-
-                    if (verbose) {
-                        ns.tprint(`Deployed ${weakenThreads} weaken threads to ${server} (${remainingRam}GB RAM available)`);
-                    }
+                    log(ns, `Deployed ${weakenThreads} weaken threads to ${server}`, verbose);
                 }
             }
 
@@ -122,10 +134,7 @@ export async function main(ns) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
                     remainingRam -= growThreads * scriptRams.grow;
-
-                    if (verbose){
-                        ns.tprint(`Deployed ${growThreads} grow threads to ${server} (${remainingRam}GB RAM available)`);
-                    }   
+                    log(ns, `Deployed ${growThreads} grow threads to ${server}`, verbose);
                 }
             }
 
@@ -138,25 +147,20 @@ export async function main(ns) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
                     remainingRam -= growThreads * scriptRams.grow;
-
-                    if (verbose){
-                        ns.tprint(`Deployed ${hackThreads} hack threads to ${server} (${remainingRam}GB RAM available)`);
-                    }
+                    log(ns, `Deployed ${hackThreads} hack threads to ${server}`, verbose);
                 }   
             }
 
             await ns.sleep(50);
         }
         
-        if (verbose){
-            ns.tprint("\nDeployment Summary:");
-            ns.tprint(`Total hack threads deployed: ${totalDeployed.hack}/${requiredThreads.hack}`);
-            ns.tprint(`Total grow threads deployed: ${totalDeployed.grow}/${requiredThreads.grow}`);
-            ns.tprint(`Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`);
-        
-            if (Object.values(remainingThreads).some(threads => threads > 0)) {
-                ns.tprint("WARNING: Not all required threads could be deployed due to RAM limitations");
-            }
+        log(ns, "\nDeployment Summary:", verbose);
+        log(ns, `Total hack threads deployed: ${totalDeployed.hack}/${requiredThreads.hack}`, verbose);
+        log(ns, `Total grow threads deployed: ${totalDeployed.grow}/${requiredThreads.grow}`, verbose);
+        log(ns, `Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`, verbose);
+    
+        if (Object.values(remainingThreads).some(threads => threads > 0)) {
+            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations", verbose);
         }
 
         // Small delay between target selections to prevent overwhelming the system
