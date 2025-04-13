@@ -1,34 +1,4 @@
 /** @param {NS} ns */
-export function calculateRequiredThreads(ns, target, operation) {
-    const maxMoney = ns.getServerMaxMoney(target);
-    const currentMoney = ns.getServerMoneyAvailable(target);
-    const currentSecurity = ns.getServerSecurityLevel(target);
-    const minSecurity = ns.getServerMinSecurityLevel(target);
-    
-    switch (operation) {
-        case 'hack':
-            const hackAmount = maxMoney * 0.5; // We want to hack 50% of max money
-            const hackPercent = ns.hackAnalyze(target);
-            return Math.ceil(hackAmount / (hackPercent * maxMoney));
-        
-        case 'grow':
-            if (currentMoney >= maxMoney * 0.5) return 0;
-            const growthNeeded = maxMoney / currentMoney;
-            const growThreads = ns.growthAnalyze(target, growthNeeded);
-            return Math.ceil(growThreads);
-        
-        case 'weaken':
-            if (currentSecurity <= minSecurity + 1) return 0;
-            const securityDiff = currentSecurity - minSecurity;
-            const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
-            return Math.ceil(weakenThreads);
-        
-        default:
-            return 0;
-    }
-}
-
-/** @param {NS} ns */
 export function getRunningAttacks(ns, allServers) {
     const attacks = new Map(); // target -> {threads, servers}
     

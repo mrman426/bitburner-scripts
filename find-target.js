@@ -18,7 +18,7 @@ export async function main(ns) {
     // Display top servers
     ns.tprint("\nTop 25 Best Servers to Attack:");
     ns.tprint("=======================================================================");
-    ns.tprint("Server\t\tScore\t\tMoney\t\tSecurity\tTime (secs)");
+    ns.tprint("Server\t\tScore\t\tMoney\t\tSecurity\tTime (secs)\t\tThreads (w/g/h)");
     ns.tprint("=======================================================================");
     
     // Find the longest server name
@@ -35,7 +35,9 @@ export async function main(ns) {
         const paddedMoney = ns.formatNumber(s.maxMoney).padStart(maxMoneyLength);
         const paddedSecurity = s.minSecurity.toFixed(2).padStart(securityLength);
         const paddedTime = (s.timeToAttack / 1000).toFixed(2).padStart(timeLength);
-        ns.tprint(`${paddedServerName}\t${paddedScore}\t\t$${paddedMoney}\t${paddedSecurity}\t\t${paddedTime}`);
+        const paddedThreads = `${s.threads.grow}/${s.threads.weaken}/${s.threads.hack}`;
+
+        ns.tprint(`${paddedServerName}\t${paddedScore}\t\t$${paddedMoney}\t${paddedSecurity}\t\t${paddedTime}\t\t${paddedThreads}`);
     }
     
     // If we have a best target, return it

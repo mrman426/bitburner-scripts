@@ -44,19 +44,19 @@ export async function main(ns) {
 
         if (currentSecurity > securityThresh) {
             // If security is too high, weaken it
-            ns.print(`WARNING: Security too high (${currentSecurity.toFixed(2)} > ${securityThresh.toFixed(2)}), weakening...`);
+            ns.print(`WARNING: security too high (${currentSecurity.toFixed(2)} > ${securityThresh.toFixed(2)}), weakening...`);
             await ns.weaken(target);
-            ns.tprint(`${hostname} weakened ${target}. New security: ${currentSecurity.toFixed(2)}`);
+            ns.tprint(`${hostname} weakened ${target} [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}] [required security: ${securityThresh.toFixed(2)}]`);
         } else if (currentMoney < moneyThresh) {
             // If money is below threshold, grow it
-            ns.print(`WARNING: Money below threshold (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(moneyThresh)}), growing...`);
+            ns.print(`WARNING: money below threshold (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(moneyThresh)}), growing...`);
             const growth = await ns.grow(target);
-            ns.tprint(`${hostname} grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(currentMoney)}`);
+            ns.tprint(`${hostname} grew ${target} by ${growth.toFixed(2)}x [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}] [required money: ${ns.formatNumber(moneyThresh)}]`);
         } else {
             // Only hack if money is above minimum threshold
-            ns.print(`INFO: Money above minimum threshold, hacking...`);
+            ns.print(`INFO: Hacking...`);
             const stolen = await ns.hack(target);
-            ns.tprint(`${hostname} stole ${ns.formatNumber(stolen)} from ${target}`);
+            ns.tprint(`${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`);
         }
     }
 } 

@@ -1,4 +1,4 @@
-import { calculateRequiredThreads, getRunningAttacks } from "./attack-utils.js";
+import { getRunningAttacks } from "./attack-utils.js";
 
 /** @param {NS} ns */
 export function getAllServers(ns) {
@@ -135,10 +135,30 @@ export function isServerHackable(ns, server, allServers) {
 export function getServerScores(ns, targetServers) {
     // Analyze each server and calculate a score
     return targetServers
+        .filter(server => {
+            // Skip servers with no RAM
+            if (ns.getServerMaxRam(server) === 0) return false;
+
+            // Skip servers that do not have root access
+            if (!ns.hasRootAccess(server)) return false;
+
+            // Skip purchased and home servers
+            if (server.startsWith('pserv-') || server === "home") return false;
+
+            return true;
+        })
         .map(server => {
             const maxMoney = ns.getServerMaxMoney(server);
             const minSecurity = ns.getServerMinSecurityLevel(server);
             const timeToAttack = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + ns.getHackTime(server);
+
+            // Calculate required threads
+            const threads = {
+                weaken: calculateRequiredThreads(ns, server, 'weaken'),
+                grow: calculateRequiredThreads(ns, server, 'grow'),
+                hack: calculateRequiredThreads(ns, server, 'hack')
+            };
+            const totalThreads = threads.weaken + threads.grow + threads.hack;
 
             // Calculate a score based on:
             // 1. Money available (higher is better)
@@ -157,9 +177,9 @@ export function getServerScores(ns, targetServers) {
                 maxMoney,
                 minSecurity,
                 timeToAttack,
+                threads,
             };
-        })
-        .filter(server => server !== null); // Remove null entries (like home server)
+        });
 }
 
 /**
@@ -215,4 +235,34 @@ export function getServerMaxRam(ns, server) {
 
 export function getServerAvailableRam(ns, server) {
     return getServerMaxRam(ns, server) - ns.getServerUsedRam(server);
+}
+
+/** @param {NS} ns */
+export function calculateRequiredThreads(ns, target, operation) {
+    const maxMoney = ns.getServerMaxMoney(target);
+    const currentMoney = ns.getServerMoneyAvailable(target);
+    const currentSecurity = ns.getServerSecurityLevel(target);
+    const minSecurity = ns.getServerMinSecurityLevel(target);
+    
+    switch (operation) {
+        case 'hack':
+            const hackAmount = maxMoney * 0.5; // We want to hack 50% of max money
+            const hackPercent = ns.hackAnalyze(target);
+            return Math.ceil(hackAmount / (hackPercent * maxMoney));
+        
+        case 'grow':
+            if (currentMoney >= maxMoney * 0.5) return 0;
+            const growthNeeded = maxMoney / currentMoney;
+            const growThreads = ns.growthAnalyze(target, growthNeeded);
+            return Math.ceil(growThreads);
+        
+        case 'weaken':
+            if (currentSecurity <= minSecurity + 1) return 0;
+            const securityDiff = currentSecurity - minSecurity;
+            const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
+            return Math.ceil(weakenThreads);
+        
+        default:
+            return 0;
+    }
 }

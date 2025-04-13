@@ -1,5 +1,6 @@
 /** @param {NS} ns */
 export async function main(ns) {
+    const minRam = 64; // Mimum RAM to buy
     const maxServers = 25; // Maximum number of servers you can own
     const serverPrefix = "pserv-"; // Prefix for purchased servers
 
@@ -7,7 +8,7 @@ export async function main(ns) {
     const money = ns.getServerMoneyAvailable("home");
     
     // Find the maximum RAM we can afford for one server
-    let maxAffordableRam = 8; // Start with minimum RAM
+    let maxAffordableRam = 8;
     let maxAffordableCost = ns.getPurchasedServerCost(maxAffordableRam);
     
     // Keep doubling RAM until we can't afford it
@@ -21,6 +22,12 @@ export async function main(ns) {
         
         maxAffordableRam = nextRam;
         maxAffordableCost = nextCost;
+    }
+
+    // Don't buy servers with less than 64GB RAM
+    if (maxAffordableRam < minRam) {
+        ns.tprint(`Not enough money to buy a server with at least ${minRam}GB RAM`);
+        return;
     }
     
     // Get list of existing purchased servers
