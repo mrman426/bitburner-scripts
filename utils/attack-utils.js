@@ -35,7 +35,7 @@ export function getRunningAttacks(ns, allServers) {
     for (const server of allServers) {
         const processes = ns.ps(server);
         for (const process of processes) {
-            if (process.filename === "attack.js") {
+            if (process.filename === "grow.js" || process.filename === "weaken.js" || process.filename === "hack.js") {
                 const target = process.args[0];
                 if (!attacks.has(target)) {
                     attacks.set(target, { threads: 0, servers: new Set() });

@@ -1,3 +1,5 @@
+import { calculateRequiredThreads, getRunningAttacks } from "./attack-utils.js";
+
 /** @param {NS} ns */
 export function getAllServers(ns) {
     const servers = new Set();
@@ -26,7 +28,10 @@ export function getDeployableServers(ns, targetServer, useAllServers = false, us
     return allServers.filter(server => {
         // Skip servers with no RAM
         if (ns.getServerMaxRam(server) === 0) return false;
-        
+
+        // Skip servers that do not have root access
+        if (!ns.hasRootAccess(server)) return false;
+
         // Skip target server
         if (server === targetServer) return false;
         
@@ -91,7 +96,79 @@ export async function hackServer(ns, server) {
         ns.tprint(`Gained root access on ${server}`);
         return true;
     } else {
-        ns.tprint(`Could not gain root access on ${server} (need ${requiredPorts} ports, opened ${portsOpened})`);
         return false;
     }
+}
+
+/**
+ * Checks if a server is currently hackable based on various conditions
+ * @param {NS} ns - Netscript API
+ * @param {string} server - Server to check
+ * @param {string[]} allServers - List of all servers to check for running attacks
+ * @returns {boolean} Whether the server is hackable
+ */
+export function isServerHackable(ns, server, allServers) {
+    const hasRoot = ns.hasRootAccess(server);
+    const reqHackLevel = ns.getServerRequiredHackingLevel(server);
+    const myHackLevel = ns.getHackingLevel();
+    const meetsHackLevel = reqHackLevel <= myHackLevel;
+    const isPurchasedServer = server.startsWith("pserv-");
+    const runningAttacks = getRunningAttacks(ns, allServers);
+    const isBeingAttacked = runningAttacks.has(server);
+
+    if (isBeingAttacked) {
+        ns.tprint(`${server} is currently being attacked, skipping...`);
+    }
+
+    return server !== "home" 
+        && !isPurchasedServer
+        && hasRoot 
+        && meetsHackLevel
+        && !isBeingAttacked;
+}
+
+/**
+ * Calculate a score for a server based on various metrics to determine its hack value
+ * @param {NS} ns - Netscript API
+ * @param {string} server - Server to score
+ * @param {Object} scriptRams - Object containing RAM costs for different scripts
+ * @returns {number} Score value for the server
+ */
+export function getServerScore(ns, server, scriptRams) {
+    const maxMoney = ns.getServerMaxMoney(server);
+    const minSecurity = ns.getServerMinSecurityLevel(server);
+    const currentSecurity = ns.getServerSecurityLevel(server);
+    const hackTime = ns.getHackTime(server);
+    const totalTime = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + hackTime;
+    
+    // Heavily penalize longer hack times
+    const timeMultiplier = Math.pow(0.95, totalTime / 1000); // Exponential decay based on time
+    
+    // More weight on security level difference
+    const securityPenalty = Math.pow(currentSecurity / minSecurity, 2);
+    
+    const moneyPerSecond = (maxMoney * ns.hackAnalyze(server)) / (totalTime / 1000);
+    const baseScore = (moneyPerSecond / securityPenalty) * timeMultiplier;
+
+    // Calculate required threads
+    const requiredThreads = {
+        weaken: calculateRequiredThreads(ns, server, 'weaken'),
+        grow: calculateRequiredThreads(ns, server, 'grow'),
+        hack: calculateRequiredThreads(ns, server, 'hack')
+    };
+    const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
+
+    // Get deployable servers and calculate total available RAM
+    const deployableServers = getDeployableServers(ns, server, true, false);
+    const totalAvailableRam = deployableServers.reduce((sum, s) => sum + getAvailableRam(ns, s), 0);
+    
+    // Calculate average RAM needed per thread (considering all script types)
+    const avgRamPerThread = (scriptRams.weaken + scriptRams.grow + scriptRams.hack) / 3;
+    const maxPossibleThreads = Math.floor(totalAvailableRam / avgRamPerThread);
+
+    // Apply a scaling factor based on thread availability
+    const threadAvailabilityRatio = maxPossibleThreads / Math.max(1, totalRequiredThreads);
+    const threadScalingFactor = Math.min(1, threadAvailabilityRatio);
+
+    return baseScore * threadScalingFactor;
 } 

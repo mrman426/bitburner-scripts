@@ -1,21 +1,14 @@
 /** @param {NS} ns */
 export async function main(ns) {
     const target = ns.args[0];
-    const shouldLoop = ns.args[1] !== false;
-    const threads = ns.args[2] || 1;
+    const sleepTime = ns.args[1] || 0;
     
     if (!target) {
-        ns.tprint("ERROR: No target specified");
+        ns.tprint("ERROR: Missing required arguments (target)");
         return;
     }
-
-    const maxMoney = ns.getServerMaxMoney(target);
     
-    do {
-        const currentMoney = ns.getServerMoneyAvailable(target);
-        if (currentMoney < maxMoney * 0.5) {
-            await ns.grow(target, { threads: threads });
-        }
-        await ns.sleep(1000);
-    } while (shouldLoop);
-} 
+    await ns.sleep(sleepTime);
+    const grew = await ns.grow(target);
+    ns.tprint(`Grew ${ns.formatNumber(grew)} on ${target}`);
+}
