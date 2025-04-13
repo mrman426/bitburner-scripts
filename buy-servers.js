@@ -68,9 +68,15 @@ export async function main(ns) {
     if (serversToBuy > 0) {
         ns.tprint(`Purchasing ${serversToBuy} server(s) with ${maxAffordableRam}GB RAM for $${totalCost}`);
         
+        // Find the next available server number
+        let nextServerNum = 0;
+        while (existingServers.includes(serverPrefix + nextServerNum)) {
+            nextServerNum++;
+        }
+        
         // Purchase servers
         for (let i = 0; i < serversToBuy; i++) {
-            const serverName = serverPrefix + (existingServers.length + i);
+            const serverName = serverPrefix + (nextServerNum + i);
             ns.purchaseServer(serverName, maxAffordableRam);
             ns.tprint(`Purchased server: ${serverName} with ${maxAffordableRam}GB RAM`);
         }
