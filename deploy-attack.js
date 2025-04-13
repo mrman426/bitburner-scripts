@@ -1,4 +1,4 @@
-import { getAllServers, hackServer } from "./utils/server-utils.js";
+import { getAllServers, hackServer, getServerMaxRam } from "./utils/server-utils.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -27,9 +27,6 @@ export async function main(ns) {
     });
     
     for (const server of hackableServers) {
-        // Skip home server
-        if (server === "home") continue;
-        
         // Try to nuke the server
         if (!ns.hasRootAccess(server)) {
             ns.tprint(`Attempting to gain root access on ${server}...`);
@@ -46,7 +43,7 @@ export async function main(ns) {
             await ns.scp("attack.js", server);
             
             // Calculate how many threads we can run
-            const serverRam = ns.getServerMaxRam(server);
+            const serverRam = getServerMaxRam(ns, server);
             const threads = Math.floor(serverRam / scriptRam);
             
             if (threads > 0) {
