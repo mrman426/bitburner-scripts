@@ -12,20 +12,7 @@ export function autocomplete(data, args) {
 
 /** @param {NS} ns */
 export async function main(ns) {
-    ns.disableLog("disableLog")
-    ns.disableLog("sleep")
-    ns.disableLog("getServerMaxMoney")
-    ns.disableLog("getServerMinSecurityLevel")
-    ns.disableLog("getServerMoneyAvailable")
-    ns.disableLog("getServerSecurityLevel")
-    ns.disableLog("getServerMaxRam")
-    ns.disableLog("getServerUsedRam")
-    ns.disableLog("getServerGrowth")
-    ns.disableLog("getHackingLevel")
-    ns.disableLog("getServerRequiredHackingLevel")
-    ns.disableLog("scan")
-    ns.disableLog("scp")
-    ns.disableLog("exec")
+    ns.disableLog("ALL");
 
     const verbose = ns.args.includes("--verbose");
     const verboseHacked = ns.args.includes("--verbose-hacked");
