@@ -10,6 +10,7 @@ export function autocomplete(data, flags) {
 /** @param {NS} ns */
 /** @param {string} target */
 export async function main(ns) {
+    ns.disableLog("ALL")
     const target = ns.args[0];
     if (!target) {
         ns.tprint("ERROR: No target specified");
