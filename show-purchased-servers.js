@@ -10,8 +10,8 @@ export async function main(ns) {
         return;
     }
 
-    // Sort servers by name
-    purchasedServers.sort();
+    // Sort servers by RAM (descending order)
+    purchasedServers.sort((a, b) => ns.getServerMaxRam(b) - ns.getServerMaxRam(a));
     
     let totalRam = 0;
     let totalUsedRam = 0;
