@@ -46,20 +46,11 @@ export async function main(ns) {
 
         // Get all servers that could be potential targets
         const potentialTargets = allServers.filter(server => {
-            // Only targets with money
             if (ns.getServerMaxMoney(server) <= 0) return false;
+            if (ns.getServerRequiredHackingLevel(server) > ns.getHackingLevel()) return false;
 
-            // Only use our own servers
-            if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
-
-            // Only use hacked servers not our own
-            if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
-
-            if (ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel()) return false;
-
-            if (!ns.hasRootAccess(server) && hackServer(ns, server)) {
-                log(ns, `Successfully gained root access on ${server}`, verbose);
-            }
+            // Attempt to nuke the server
+            hackServer(ns, server)
 
             return true;
         });
@@ -73,8 +64,8 @@ export async function main(ns) {
             .sort((a, b) => b.score - a.score);
 
         if (serverScores.length === 0) {
-            log(ns, "No suitable targets found. Waiting 20 seconds before retrying...", verbose);
-            await ns.sleep(20000);
+            log(ns, "No suitable targets found. Waiting 30 seconds before retrying...", verbose);
+            await ns.sleep(30000);
             continue;
         }
 
@@ -168,8 +159,8 @@ export async function main(ns) {
         log(ns, `Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`, verbose);
     
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
-            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Sleeping for 60 seconds.", verbose);
-            await ns.sleep(60000);
+            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Sleeping for 30 seconds.", verbose);
+            await ns.sleep(30000);
         }
 
         // Small delay between target selections to prevent overwhelming the system

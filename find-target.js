@@ -11,12 +11,10 @@ export async function main(ns) {
     
     // Analyze each server and calculate a score
     const serverScores = getServerScores(ns, targetServers)
-    
-    // Sort servers by score in descending order
-    serverScores.sort((a, b) => b.score - a.score);
+        .sort((a, b) => b.score - a.score)
     
     // Display top servers
-    ns.tprint("\nTop 25 Best Servers to Attack:");
+    ns.tprint("\nTop 100 Best Servers to Attack:");
     ns.tprint("=======================================================================");
     ns.tprint("Server\t\tScore\t\tMoney\t\tSecurity\tTime (secs)\t\tThreads (w/g/h)");
     ns.tprint("=======================================================================");
@@ -28,7 +26,7 @@ export async function main(ns) {
     const securityLength = Math.max(...serverScores.map(s => s.minSecurity.toFixed(2).length));
     const timeLength = Math.max(...serverScores.map(s => (s.timeToAttack / 1000).toFixed(2).length));
     
-    for (let i = 0; i < Math.min(25, serverScores.length); i++) {
+    for (let i = 0; i < Math.min(100, serverScores.length); i++) {
         const s = serverScores[i];
         const paddedServerName = s.server.padEnd(maxServerNameLength);
         const paddedScore = s.score.toFixed(2).padStart(maxScoreLength);

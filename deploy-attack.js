@@ -1,4 +1,5 @@
 import { getAllServers, hackServer, getServerAvailableRam } from "./utils/server-utils.js";
+import { log } from "./utils/console-utils.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -6,7 +7,7 @@ import { getAllServers, hackServer, getServerAvailableRam } from "./utils/server
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked"] : data.servers;
+    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose"] : data.servers;
 }
 
 /** @param {NS} ns */
@@ -40,9 +41,7 @@ export async function main(ns) {
     
     for (const server of hackableServers) {
         // Try to nuke the server
-        if (!ns.hasRootAccess(server) && hackServer(ns, server)) {
-            log(ns, `Successfully gained root access on ${server}`, verbose);
-        }
+        hackServer(ns, server)
         
         // If we have root access, deploy the script
         if (ns.hasRootAccess(server)) {
