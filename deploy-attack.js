@@ -49,7 +49,7 @@ export async function main(ns) {
             if (threads > 0) {
                 ns.tprint(`Running ${threads} threads on ${server}`);
                 ns.exec("attack.js", server, threads, target);
-                await ns.sleep(250);
+                await ns.sleep(500);
             }
         }
     }
