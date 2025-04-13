@@ -81,13 +81,8 @@ export async function main(ns) {
         // Calculate timing for operations
         const weakenTime = ns.getWeakenTime(target);
         const growTime = ns.getGrowTime(target);
-        const hackTime = ns.getHackTime(target);
 
-        log(ns, `========================================\nSelected target: ${target}`, verbose);
-        log(ns, `Score: ${serverScores[0].score.toFixed(2)}`, verbose);
-        log(ns, `Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}`, verbose);
-        log(ns, `Min Security: ${serverScores[0].minSecurity.toFixed(2)}`, verbose);
-        log(ns, `Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s`, verbose);
+        log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}] [Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s]`, verbose);
         log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`, verbose);
         
         // Get deployable servers
@@ -120,7 +115,6 @@ export async function main(ns) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
                     remainingRam -= weakenThreads * scriptRams.weaken;
-                    log(ns, `Deployed ${weakenThreads} weaken threads to ${server}`, verbose);
                 }
             }
 
@@ -133,7 +127,6 @@ export async function main(ns) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
                     remainingRam -= growThreads * scriptRams.grow;
-                    log(ns, `Deployed ${growThreads} grow threads to ${server}`, verbose);
                 }
             }
 
@@ -146,17 +139,13 @@ export async function main(ns) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
                     remainingRam -= hackThreads * scriptRams.hack;
-                    log(ns, `Deployed ${hackThreads} hack threads to ${server}`, verbose);
                 }   
             }
 
             await ns.sleep(50);
         }
         
-        log(ns, "\nDeployment Summary:", verbose);
-        log(ns, `Total hack threads deployed: ${totalDeployed.hack}/${requiredThreads.hack}`, verbose);
-        log(ns, `Total grow threads deployed: ${totalDeployed.grow}/${requiredThreads.grow}`, verbose);
-        log(ns, `Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`, verbose);
+        log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Grow: ${totalDeployed.grow}] [Weaken: ${totalDeployed.weaken}]`, verbose);
     
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
             log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Sleeping for 30 seconds.", verbose);
