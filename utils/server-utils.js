@@ -178,3 +178,7 @@ export function getServerMaxRam(ns, server) {
 
     return ns.getServerMaxRam(server);
 }
+
+export function getServerAvailableRam(ns, server) {
+    return getServerMaxRam(ns, server) - ns.getServerUsedRam(server);
+}

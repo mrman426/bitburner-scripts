@@ -1,4 +1,4 @@
-import { getAllServers, hackServer, getServerMaxRam } from "./utils/server-utils.js";
+import { getAllServers, hackServer, getServerAvailableRam } from "./utils/server-utils.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -43,12 +43,13 @@ export async function main(ns) {
             await ns.scp("attack.js", server);
             
             // Calculate how many threads we can run
-            const serverRam = getServerMaxRam(ns, server);
+            const serverRam = getServerAvailableRam(ns, server);
             const threads = Math.floor(serverRam / scriptRam);
             
             if (threads > 0) {
                 ns.tprint(`Running ${threads} threads on ${server}`);
                 ns.exec("attack.js", server, threads, target);
+                await ns.sleep(250);
             }
         }
     }
