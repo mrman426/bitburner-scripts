@@ -28,5 +28,5 @@ export async function main(ns) {
     });
     
     // Print header and formatted table
-    ns.tprint("=== Running Attacks ===\n" + listView(attackData));
+    ns.tprint("\n=== Running Attacks ===\n" + listView(attackData));
 } 

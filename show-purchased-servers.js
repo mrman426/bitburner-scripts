@@ -37,5 +37,5 @@ export async function main(ns) {
     });
     
     // Print header and formatted table
-    ns.tprint("=== Purchased Servers ===\n" + listView(serverData));
+    ns.tprint("\n=== Purchased Servers ===\n" + listView(serverData));
 } 
