@@ -64,7 +64,7 @@ export async function main(ns) {
             .sort((a, b) => b.score - a.score);
 
         if (serverScores.length === 0) {
-            log(ns, "No suitable targets found. Waiting 30 seconds before retrying...", verbose);
+            log(ns, "WARNING: No suitable targets found. Waiting 30 seconds before retrying...", verbose);
             await ns.sleep(30000);
             continue;
         }
@@ -148,7 +148,7 @@ export async function main(ns) {
         log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Grow: ${totalDeployed.grow}] [Weaken: ${totalDeployed.weaken}]`, verbose);
     
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
-            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Sleeping for 30 seconds.", verbose);
+            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Waiting 30 seconds before retrying...", verbose);
             await ns.sleep(30000);
         }
 

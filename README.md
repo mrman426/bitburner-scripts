@@ -8,10 +8,10 @@ To get started hack `n00dles` using
 run deploy-attack.js n00dles --hacked-only
 ```
 
-As you get some money buy servers
+As you get some money then purchase servers
 
 ```
-run buy-servers.js
+run purchase-servers.js
 ```
 
 When you have enough RAM you can attack a bigger target

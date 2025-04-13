@@ -53,6 +53,8 @@ export async function main(ns) {
         if (worstServer && minRam < maxAffordableRam) {
             ns.tprint(`Selling worst server ${worstServer} with ${minRam}GB RAM to make room for a better one`);
             ns.deleteServer(worstServer);
+            // Wait a short time to ensure deletion is complete
+            await ns.sleep(100);
             // Update the existing servers list
             existingServers.splice(existingServers.indexOf(worstServer), 1);
         } else {
