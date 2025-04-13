@@ -1,47 +1,22 @@
 import { getAllServers, getServerScores } from "./utils/server-utils.js";
+import { listView } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
-    // Get all servers
-    const allServers = getAllServers(ns);
-    const targetServers = allServers.filter(server => {
-        if (server === "home") return false;
-        return ns.hasRootAccess(server);
-    });
-    
     // Analyze each server and calculate a score
-    const serverScores = getServerScores(ns, targetServers)
+    const serverScores = getServerScores(ns, getAllServers(ns))
         .sort((a, b) => b.score - a.score)
     
-    // Display top servers
-    ns.tprint("\nTop 100 Best Servers to Attack:");
-    ns.tprint("=======================================================================");
-    ns.tprint("Server\t\tScore\t\tMoney\t\tSecurity\tTime (secs)\t\tThreads (w/g/h)");
-    ns.tprint("=======================================================================");
+    // Format the data for listView
+    const formattedData = serverScores.slice(0, 100).map(s => ({
+        Server: s.server,
+        Score: s.score.toFixed(2),
+        Money: `$${ns.formatNumber(s.maxMoney)}`,
+        Security: s.minSecurity.toFixed(2),
+        'Time (s)': (s.timeToAttack / 1000).toFixed(2),
+        'Threads (w/g/h)': `${s.threads.weaken}/${s.threads.grow}/${s.threads.hack}`
+    }));
     
-    // Find the longest server name
-    const maxServerNameLength = Math.max(...serverScores.map(s => s.server.length));
-    const maxScoreLength = Math.max(...serverScores.map(s => s.score.toFixed(2).length));
-    const maxMoneyLength = Math.max(...serverScores.map(s => ns.formatNumber(s.maxMoney).length));
-    const securityLength = Math.max(...serverScores.map(s => s.minSecurity.toFixed(2).length));
-    const timeLength = Math.max(...serverScores.map(s => (s.timeToAttack / 1000).toFixed(2).length));
-    
-    for (let i = 0; i < Math.min(100, serverScores.length); i++) {
-        const s = serverScores[i];
-        const paddedServerName = s.server.padEnd(maxServerNameLength);
-        const paddedScore = s.score.toFixed(2).padStart(maxScoreLength);
-        const paddedMoney = ns.formatNumber(s.maxMoney).padStart(maxMoneyLength);
-        const paddedSecurity = s.minSecurity.toFixed(2).padStart(securityLength);
-        const paddedTime = (s.timeToAttack / 1000).toFixed(2).padStart(timeLength);
-        const paddedThreads = `${s.threads.grow}/${s.threads.weaken}/${s.threads.hack}`;
-
-        ns.tprint(`${paddedServerName}\t${paddedScore}\t\t$${paddedMoney}\t${paddedSecurity}\t\t${paddedTime}\t\t${paddedThreads}`);
-    }
-    
-    // If we have a best target, return it
-    if (serverScores.length > 0) {
-        return serverScores[0].server;
-    }
-    
-    return null;
+    // Print header and formatted table
+    ns.tprint("=== Top 100 Best Servers to Attack ===\n" + listView(formattedData));
 } 

@@ -19,6 +19,25 @@ export function getAllServers(ns) {
     return Array.from(servers);
 }
 
+/**
+ * Finds the path from home to the target server
+ * @param {NS} ns
+ * @param {string} targetServer
+ * @returns {string[]} Array of server names in the path
+ */
+export function findPathToServer(ns, targetServer) {
+    const path = [];
+    let current = targetServer;
+    
+    while (current !== "home") {
+        path.unshift(current);
+        current = ns.scan(current)[0]; // Get the first connected server (parent)
+    }
+    path.unshift("home");
+    
+    return path;
+}
+
 /** @param {NS} ns */
 export function getDeployableServers(ns, targetServer, useAllServers = false, usePurchasedOnly = false) {
     const allServers = getAllServers(ns);
@@ -280,7 +299,7 @@ export function getRunningAttacks(ns, allServers) {
     for (const server of allServers) {
         const processes = ns.ps(server);
         for (const process of processes) {
-            if (process.filename === "grow.js" || process.filename === "weaken.js" || process.filename === "hack.js") {
+            if (process.filename === "attack.js" || process.filename === "grow.js" || process.filename === "weaken.js" || process.filename === "hack.js") {
                 const target = process.args[0];
                 if (!attacks.has(target)) {
                     attacks.set(target, { threads: 0, servers: new Set() });
