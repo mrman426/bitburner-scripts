@@ -11,4 +11,5 @@ export async function main(ns) {
     await ns.sleep(sleepTime);
     const weakened = await ns.weaken(target);
     ns.tprint(`Weakened ${ns.formatNumber(weakened)} on ${target}`);
+    ns.tprint(`${ns.getHostname()} weakened ${target} [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}]`);
 }

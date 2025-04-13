@@ -11,4 +11,5 @@ export async function main(ns) {
     await ns.sleep(sleepTime);
     const hacked = await ns.hack(target);
     ns.tprint(`Stole ${ns.formatNumber(hacked)} from ${target}`);
+    ns.tprint(`${ns.getHostname()} stole ${ns.formatNumber(hacked)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}]`);
 }

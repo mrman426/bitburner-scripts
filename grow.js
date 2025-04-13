@@ -10,5 +10,5 @@ export async function main(ns) {
     
     await ns.sleep(sleepTime);
     const grew = await ns.grow(target);
-    ns.tprint(`Grew ${ns.formatNumber(grew)} on ${target}`);
+    ns.tprint(`${ns.getHostname()} grew ${target} by ${grew.toFixed(2)}x [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}]`);
 }

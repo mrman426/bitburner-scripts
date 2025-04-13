@@ -1,5 +1,4 @@
-import { getAllServers, getDeployableServers, getAvailableRam, hackServer, isServerHackable, getServerScore } from "./utils/server-utils.js";
-import { calculateRequiredThreads, getRunningAttacks, waitForAttacks } from "./utils/attack-utils.js";
+import { getAllServers, hackServer, getServerAvailableRam, calculateRequiredThreads } from "./utils/server-utils.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -7,128 +6,121 @@ import { calculateRequiredThreads, getRunningAttacks, waitForAttacks } from "./u
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--all-servers", "--purchased-only", "--targets"] : data.servers;
-}
-
-class ServerAttackManager {
-    constructor(ns) {
-        this.ns = ns;
-        this.lastHackTime = 0;  // Track when we last tried to gain root access
-        this.scriptRams = {
-            weaken: ns.getScriptRam("weaken.js"),
-            grow: ns.getScriptRam("grow.js"),
-            hack: ns.getScriptRam("hack.js")
-        };
-    }
-
-    findBestTarget(servers) {
-        const ns = this.ns;
-        ns.tprint(`\nSearching through ${servers.length} total servers...`);
-        const hackableServers = servers.filter(s => isServerHackable(ns, s, servers));
-        ns.tprint(`Found ${hackableServers.length} hackable servers`);
-        
-        if (hackableServers.length === 0) {
-            ns.tprint("No hackable servers found!");
-            return null;
-        }
-
-        const serverScores = hackableServers.map(server => {
-            const score = getServerScore(ns, server, this.scriptRams);
-            // Format numbers safely with checks for NaN
-            const maxMoney = ns.getServerMaxMoney(server);
-            const hackTime = ns.getHackTime(server);
-            ns.tprint(`Server ${server}: [Max Money: $${maxMoney ? ns.formatNumber(maxMoney) : '0'}] [Hack Time: ${hackTime ? (hackTime/1000).toFixed(1) : '0'}s] [Score: ${score ? score.toFixed(2) : '0'}]`);
-            return { server, score };
-        });
-        
-        // Sort by score and get the best
-        serverScores.sort((a, b) => b.score - a.score);
-        const bestServer = serverScores[0]?.server || null;
-        ns.tprint(`INFO: Best target selected: ${bestServer || 'none'}`);
-        return bestServer;
-    }
-
-    async deployAttack(targetServer) {
-        const ns = this.ns;
-        const deployableServers = getDeployableServers(ns, targetServer, useAllServers, usePurchasedOnly);
-        const threads = {
-            weaken: calculateRequiredThreads(ns, targetServer, 'weaken'),
-            grow: calculateRequiredThreads(ns, targetServer, 'grow'),
-            hack: calculateRequiredThreads(ns, targetServer, 'hack')
-        };
-
-        const weakenTime = ns.getWeakenTime(targetServer);
-        const growTime = ns.getGrowTime(targetServer);
-        const hackSleepTime = Math.max(weakenTime, growTime) + 2000;
-
-        let totalDeployed = 0;
-        const attackServers = deployableServers.filter(s => s !== targetServer);
-
-        // Deploy hack threads first
-        if (threads.hack > 0) {
-            const hackServer = attackServers.find(server => 
-                getAvailableRam(ns, server) >= threads.hack * this.scriptRams.hack);
-            if (hackServer) {
-                totalDeployed += await this.deployScript(hackServer, "hack.js", threads.hack, targetServer, hackSleepTime);
-            }
-        }
-
-        // Deploy weaken and grow across remaining servers
-        for (const server of attackServers) {
-            if (threads.weaken <= 0 && threads.grow <= 0) break;
-
-            const availableRam = getAvailableRam(ns, server);
-            const weakenThreads = Math.min(threads.weaken, Math.floor(availableRam / this.scriptRams.weaken));
-            const growThreads = Math.min(threads.grow, 
-                Math.floor((availableRam - (weakenThreads * this.scriptRams.weaken)) / this.scriptRams.grow));
-
-            totalDeployed += await this.deployScript(server, "weaken.js", weakenThreads, targetServer);
-            totalDeployed += await this.deployScript(server, "grow.js", growThreads, targetServer);
-            
-            threads.weaken -= weakenThreads;
-            threads.grow -= growThreads;
-        }
-
-        return totalDeployed;
-    }
-
-    async deployScript(server, scriptName, threads, target, sleepTime = 0) {
-        if (threads <= 0) return 0;
-        await this.ns.scp(scriptName, server);
-        const pid = this.ns.exec(scriptName, server, threads, target, sleepTime);
-        return pid !== 0 ? threads : 0;
-    }
+    return args.length === 0 ? ["--purchased-only", "--hacked-only"] : data.servers;
 }
 
 /** @param {NS} ns */
 export async function main(ns) {
-    const useAllServers = ns.args.includes("--all-servers");
-    const usePurchasedOnly = ns.args.includes("--purchased-only");
-    const targetArg = ns.args.find(arg => arg.startsWith("--targets="));
-    const targetServers = targetArg ? targetArg.split("=")[1].split(",").map(s => s.trim()) : null;
-
-    const manager = new ServerAttackManager(ns);
-
-    while (true) {
-        const allServers = targetServers || getAllServers(ns);
-
-        // Hack new servers periodically (every 5 minutes)
-        if (Date.now() - manager.lastHackTime > 300000) {
-            for (let i = 0; i < allServers.length; i += 5) {
-                await Promise.all(allServers.slice(i, i + 5).map(server => hackServer(ns, server)));
-                await ns.sleep(100);
-            }
-            manager.lastHackTime = Date.now();
-        }
-
-        const targetServer = manager.findBestTarget(allServers);
-        if (!targetServer) {
-            await ns.sleep(5000);
-            continue;
-        }
-
-        await manager.deployAttack(targetServer);
-
-        await ns.sleep(10000);
+    const target = ns.args[0];
+    if (!target) {
+        ns.tprint("ERROR: No target specified");
+        return;
     }
-}
+
+    // Get script RAM requirements
+    const scriptRams = {
+        hack: ns.getScriptRam("hack.js"),
+        grow: ns.getScriptRam("grow.js"),
+        weaken: ns.getScriptRam("weaken.js")
+    };
+    
+    // Get all servers and filter out those we can't hack
+    const usePurchasedServersOnly = ns.args.includes("--purchased-only");
+    const useHackedServersOnly = ns.args.includes("--hacked-only");
+    const allServers = getAllServers(ns);
+    const hackableServers = allServers.filter(server => {
+        const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
+
+        // Only use our own servers
+        if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
+
+        // Only use hacked servers not our own
+        if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
+
+        return requiredHackingLevel <= ns.getHackingLevel();
+    });
+
+    // Calculate required threads for each operation
+    const requiredThreads = {
+        hack: calculateRequiredThreads(ns, target, 'hack'),
+        grow: calculateRequiredThreads(ns, target, 'grow'),
+        weaken: calculateRequiredThreads(ns, target, 'weaken')
+    };
+
+    ns.tprint(`\nRequired threads for ${target}:`);
+    ns.tprint(`Hack: ${requiredThreads.hack}`);
+    ns.tprint(`Grow: ${requiredThreads.grow}`);
+    ns.tprint(`Weaken: ${requiredThreads.weaken}`);
+    
+    // Distribute threads across available servers
+    let remainingThreads = { ...requiredThreads };
+    let totalDeployed = { hack: 0, grow: 0, weaken: 0 };
+    
+    for (const server of hackableServers) {
+        // Try to nuke the server if needed
+        if (!ns.hasRootAccess(server)) {
+            ns.tprint(`Attempting to gain root access on ${server}...`);
+            if (hackServer(ns, server)) {
+                ns.tprint(`Successfully gained root access on ${server}`);
+            } else {
+                ns.tprint(`Not enough ports opened for ${server}. Need ${ns.getServerNumPortsRequired(server)} but only opened ${portsOpened}`);
+                continue;
+            }
+        }
+        
+        // If we have root access, deploy the scripts
+        if (ns.hasRootAccess(server)) {
+            const serverRam = getServerAvailableRam(ns, server);
+            let remainingRam = serverRam;
+            
+            // Deploy weaken first
+            const weakenThreads = Math.min(remainingThreads.weaken, Math.floor(remainingRam / scriptRams.weaken));
+            if (weakenThreads > 0) {
+                await ns.scp("weaken.js", server);
+                const pid = ns.exec("weaken.js", server, weakenThreads, target);
+                if (pid > 0) {
+                    remainingThreads.weaken -= weakenThreads;
+                    totalDeployed.weaken += weakenThreads;
+                    ns.tprint(`Deployed ${weakenThreads} weaken threads to ${server} (${remainingRam}GB RAM available)`);
+                    remainingRam -= weakenThreads * scriptRams.weaken;
+                }
+            }
+
+            // Then deploy grow
+            const growThreads = Math.min(remainingThreads.grow, Math.floor(remainingRam / scriptRams.grow));
+            if (growThreads > 0) {
+                await ns.scp("grow.js", server);
+                const pid = ns.exec("grow.js", server, growThreads, target);
+                if (pid > 0) {
+                    remainingThreads.grow -= growThreads;
+                    totalDeployed.grow += growThreads;
+                    ns.tprint(`Deployed ${growThreads} grow threads to ${server} (${remainingRam}GB RAM available)`);
+                    remainingRam -= growThreads * scriptRams.grow;
+                }
+            }
+
+            // Finally deploy hack
+            const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
+            if (hackThreads > 0) {
+                await ns.scp("hack.js", server);
+                const pid = ns.exec("hack.js", server, hackThreads, target);
+                if (pid > 0) {
+                    remainingThreads.hack -= hackThreads;
+                    totalDeployed.hack += hackThreads;
+                    ns.tprint(`Deployed ${hackThreads} hack threads to ${server} (${remainingRam}GB RAM available)`);
+                }
+            }
+
+            await ns.sleep(500);
+        }
+    }
+    
+    ns.tprint("\nDeployment Summary:");
+    ns.tprint(`Total hack threads deployed: ${totalDeployed.hack}/${requiredThreads.hack}`);
+    ns.tprint(`Total grow threads deployed: ${totalDeployed.grow}/${requiredThreads.grow}`);
+    ns.tprint(`Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`);
+    
+    if (Object.values(remainingThreads).some(threads => threads > 0)) {
+        ns.tprint("\nWARNING: Not all required threads could be deployed due to RAM limitations");
+    }
+} 

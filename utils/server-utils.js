@@ -246,12 +246,20 @@ export function calculateRequiredThreads(ns, target, operation) {
     
     switch (operation) {
         case 'hack':
-            const hackAmount = maxMoney * 0.5; // We want to hack 50% of max money
+            // Calculate optimal hack amount based on server's growth rate
+            const growthRate = ns.getServerGrowth(target);
             const hackPercent = ns.hackAnalyze(target);
+            
+            // We want to hack enough that the server can grow back within a reasonable time
+            // Aim to hack 25% of max money, but adjust based on growth rate
+            const optimalHackPercent = Math.min(0.25, 0.1 + (growthRate / 100));
+            const hackAmount = maxMoney * optimalHackPercent;
+            
+            // Calculate threads needed for this hack amount
             return Math.ceil(hackAmount / (hackPercent * maxMoney));
         
         case 'grow':
-            if (currentMoney >= maxMoney * 0.5) return 0;
+            if (currentMoney >= maxMoney * 0.9) return 0;
             const growthNeeded = maxMoney / currentMoney;
             const growThreads = ns.growthAnalyze(target, growthNeeded);
             return Math.ceil(growThreads);
