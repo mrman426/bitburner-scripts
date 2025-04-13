@@ -7,7 +7,7 @@ import { getRunningAttacks } from "./utils/attack-utils.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--purchased-only", "--hacked-only"] : data.servers;
+    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose"] : data.servers;
 }
 
 /** @param {NS} ns */
@@ -18,8 +18,9 @@ export async function main(ns) {
         grow: ns.getScriptRam("grow.js"),
         weaken: ns.getScriptRam("weaken.js")
     };
-
+    
     // Get all servers and filter out those we can't hack
+    const verbose = ns.args.includes("--verbose");
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     const allServers = getAllServers(ns);
@@ -51,11 +52,6 @@ export async function main(ns) {
         }
 
         const target = serverScores[0].server;
-        ns.tprint(`\nSelected target: ${target}`);
-        ns.tprint(`Score: ${serverScores[0].score.toFixed(2)}`);
-        ns.tprint(`Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}`);
-        ns.tprint(`Min Security: ${serverScores[0].minSecurity.toFixed(2)}`);
-        ns.tprint(`Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s`);
 
         // Calculate required threads for each operation
         const requiredThreads = {
@@ -69,10 +65,17 @@ export async function main(ns) {
         const growTime = ns.getGrowTime(target);
         const hackTime = ns.getHackTime(target);
 
-        ns.tprint(`\nRequired threads for ${target}:`);
-        ns.tprint(`Hack: ${requiredThreads.hack}`);
-        ns.tprint(`Grow: ${requiredThreads.grow}`);
-        ns.tprint(`Weaken: ${requiredThreads.weaken}`);
+        if (verbose){
+            ns.tprint(`\nSelected target: ${target}`);
+            ns.tprint(`Score: ${serverScores[0].score.toFixed(2)}`);
+            ns.tprint(`Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}`);
+            ns.tprint(`Min Security: ${serverScores[0].minSecurity.toFixed(2)}`);
+            ns.tprint(`Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s`);
+            ns.tprint(`\nRequired threads for ${target}:`);
+            ns.tprint(`Hack: ${requiredThreads.hack}`);
+            ns.tprint(`Grow: ${requiredThreads.grow}`);
+            ns.tprint(`Weaken: ${requiredThreads.weaken}`);
+        }
         
         // Get deployable servers
         const deployServers = allServers
@@ -103,7 +106,9 @@ export async function main(ns) {
                 if (pid > 0) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
-                    ns.tprint(`Deployed ${weakenThreads} weaken threads to ${server} (${remainingRam}GB RAM available)`);
+                    if (verbose) {
+                        ns.tprint(`Deployed ${weakenThreads} weaken threads to ${server} (${remainingRam}GB RAM available)`);
+                    }
                     remainingRam -= weakenThreads * scriptRams.weaken;
                 }
             }
@@ -116,7 +121,9 @@ export async function main(ns) {
                 if (pid > 0) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
-                    ns.tprint(`Deployed ${growThreads} grow threads to ${server} (${remainingRam}GB RAM available)`);
+                    if (verbose){
+                        ns.tprint(`Deployed ${growThreads} grow threads to ${server} (${remainingRam}GB RAM available)`);
+                    }   
                     remainingRam -= growThreads * scriptRams.grow;
                 }
             }
@@ -129,20 +136,24 @@ export async function main(ns) {
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
-                    ns.tprint(`Deployed ${hackThreads} hack threads to ${server} (${remainingRam}GB RAM available)`);
-                }
+                    if (verbose){
+                        ns.tprint(`Deployed ${hackThreads} hack threads to ${server} (${remainingRam}GB RAM available)`);
+                    }
+                }   
             }
 
             await ns.sleep(50);
         }
         
-        ns.tprint("\nDeployment Summary:");
-        ns.tprint(`Total hack threads deployed: ${totalDeployed.hack}/${requiredThreads.hack}`);
-        ns.tprint(`Total grow threads deployed: ${totalDeployed.grow}/${requiredThreads.grow}`);
-        ns.tprint(`Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`);
+        if (verbose){
+            ns.tprint("\nDeployment Summary:");
+            ns.tprint(`Total hack threads deployed: ${totalDeployed.hack}/${requiredThreads.hack}`);
+            ns.tprint(`Total grow threads deployed: ${totalDeployed.grow}/${requiredThreads.grow}`);
+            ns.tprint(`Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`);
         
-        if (Object.values(remainingThreads).some(threads => threads > 0)) {
-            ns.tprint("WARNING: Not all required threads could be deployed due to RAM limitations");
+            if (Object.values(remainingThreads).some(threads => threads > 0)) {
+                ns.tprint("WARNING: Not all required threads could be deployed due to RAM limitations");
+            }
         }
 
         // Small delay between target selections to prevent overwhelming the system
