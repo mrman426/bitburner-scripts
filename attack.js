@@ -45,17 +45,17 @@ export async function main(ns) {
             // If security is too high, weaken it
             ns.print(`WARNING: Security too high (${currentSecurity.toFixed(2)} > ${securityThresh.toFixed(2)}), weakening...`);
             await ns.weaken(target);
-            ns.print(`Weakened ${target}. New security: ${currentSecurity.toFixed(2)}`);
+            ns.tprint(`Weakened ${target}. New security: ${currentSecurity.toFixed(2)}`);
         } else if (currentMoney < moneyThresh) {
             // If money is below threshold, grow it
             ns.print(`WARNING: Money below threshold (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(moneyThresh)}), growing...`);
             const growth = await ns.grow(target);
-            ns.print(`Grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(currentMoney)}`);
+            ns.tprint(`Grew ${target} by ${growth.toFixed(2)}x. New money: ${ns.formatNumber(currentMoney)}`);
         } else {
             // Only hack if money is above minimum threshold
             ns.print(`INFO: Money above minimum threshold, hacking...`);
             const stolen = await ns.hack(target);
-            ns.print(`Stole ${ns.formatNumber(stolen)} from ${target}`);
+            ns.tprint(`Stole ${ns.formatNumber(stolen)} from ${target}`);
         }
     }
 } 
