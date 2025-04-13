@@ -132,32 +132,34 @@ export function isServerHackable(ns, server, allServers) {
  * @param {NS} ns - Netscript API
  * @returns {object} Score values for the servers
  */
-export function getServerScores(ns) {
+export function getServerScores(ns, targetServers) {
     // Analyze each server and calculate a score
-    const serverScores = targetServers.map(server => {
-        const maxMoney = ns.getServerMaxMoney(server);
-        const minSecurity = ns.getServerMinSecurityLevel(server);
-        const timeToAttack = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + ns.getHackTime(server);
+    return targetServers
+        .map(server => {
+            const maxMoney = ns.getServerMaxMoney(server);
+            const minSecurity = ns.getServerMinSecurityLevel(server);
+            const timeToAttack = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + ns.getHackTime(server);
 
-        // Calculate a score based on:
-        // 1. Money available (higher is better)
-        // 2. Security level (lower is better)
-        // 3. Time to hack (lower is better)
-        const moneyScore = maxMoney / 1000000; // Normalize to millions
-        const securityScore = 1 / minSecurity;
-        const timeMultiplier = Math.pow(0.95, timeToAttack / 1000); // Exponential decay based on time
-        
-        // Final score calculation
-        const score = moneyScore * securityScore * timeMultiplier;
-        
-        return {
-            server,
-            score,
-            maxMoney,
-            minSecurity,
-            timeToAttack,
-        };
-    }).filter(server => server !== null); // Remove null entries (like home server)
+            // Calculate a score based on:
+            // 1. Money available (higher is better)
+            // 2. Security level (lower is better)
+            // 3. Time to hack (lower is better)
+            const moneyScore = maxMoney / 1000000; // Normalize to millions
+            const securityScore = 1 / minSecurity;
+            const timeMultiplier = Math.pow(0.95, timeToAttack / 1000); // Exponential decay based on time
+            
+            // Final score calculation
+            const score = moneyScore * securityScore * timeMultiplier;
+            
+            return {
+                server,
+                score,
+                maxMoney,
+                minSecurity,
+                timeToAttack,
+            };
+        })
+        .filter(server => server !== null); // Remove null entries (like home server)
 }
 
 /**

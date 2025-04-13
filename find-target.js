@@ -3,14 +3,14 @@ import { getAllServers, getServerScores } from "./utils/server-utils.js";
 /** @param {NS} ns */
 export async function main(ns) {
     // Get all servers
-    const allServers = getAllServers();
+    const allServers = getAllServers(ns);
     const targetServers = allServers.filter(server => {
         if (server === "home") return false;
         return ns.hasRootAccess(server);
     });
     
     // Analyze each server and calculate a score
-    const serverScores = getServerScores(ns)
+    const serverScores = getServerScores(ns, targetServers)
     
     // Sort servers by score in descending order
     serverScores.sort((a, b) => b.score - a.score);
