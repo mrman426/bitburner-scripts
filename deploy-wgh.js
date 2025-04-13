@@ -46,6 +46,9 @@ export async function main(ns) {
     while (true) {
         // Get all servers that could be potential targets
         const potentialTargets = allServers.filter(server => {
+            // Only targets with money
+            if (ns.getServerMaxMoney(server) <= 0) return false;
+
             // Only use our own servers
             if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
 
