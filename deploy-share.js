@@ -29,7 +29,7 @@ export async function main(ns) {
         
         for (const server of deployServers) {
             // Kill any existing share scripts
-            ns.killall(server);
+            //ns.killall(server);
             
             // Calculate how many threads we can run
             const serverRam = getAvailableRam(ns, server);
