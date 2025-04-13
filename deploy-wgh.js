@@ -1,4 +1,4 @@
-import { getAllServers, hackServer, getServerAvailableRam, calculateRequiredThreads, getServerScores } from "./utils/server-utils.js";
+import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores } from "./utils/server-utils.js";
 import { getRunningAttacks } from "./utils/attack-utils.js";
 
 /**
@@ -73,10 +73,7 @@ export async function main(ns) {
             ns.tprint(`Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}`);
             ns.tprint(`Min Security: ${serverScores[0].minSecurity.toFixed(2)}`);
             ns.tprint(`Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s`);
-            ns.tprint(`\nRequired threads for ${target}:`);
-            ns.tprint(`Hack: ${requiredThreads.hack}`);
-            ns.tprint(`Grow: ${requiredThreads.grow}`);
-            ns.tprint(`Weaken: ${requiredThreads.weaken}`);
+            ns.tprint(`Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`);
         }
         
         // Get deployable servers
