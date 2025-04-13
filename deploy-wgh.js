@@ -1,5 +1,4 @@
-import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores } from "./utils/server-utils.js";
-import { getRunningAttacks } from "./utils/attack-utils.js";
+import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningAttacks } from "./utils/server-utils.js";
 import { log } from "./utils/console-utils.js";
 
 /**

@@ -1,5 +1,3 @@
-import { getRunningAttacks } from "./attack-utils.js";
-
 /** @param {NS} ns */
 export function getAllServers(ns) {
     const servers = new Set();
@@ -273,4 +271,26 @@ export function calculateRequiredThreads(ns, target, operation) {
         default:
             return 0;
     }
+}
+
+/** @param {NS} ns */
+export function getRunningAttacks(ns, allServers) {
+    const attacks = new Map(); // target -> {threads, servers}
+    
+    for (const server of allServers) {
+        const processes = ns.ps(server);
+        for (const process of processes) {
+            if (process.filename === "grow.js" || process.filename === "weaken.js" || process.filename === "hack.js") {
+                const target = process.args[0];
+                if (!attacks.has(target)) {
+                    attacks.set(target, { threads: 0, servers: new Set() });
+                }
+                const attack = attacks.get(target);
+                attack.threads += process.threads;
+                attack.servers.add(server);
+            }
+        }
+    }
+    
+    return attacks;
 }
