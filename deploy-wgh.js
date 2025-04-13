@@ -1,4 +1,4 @@
-import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningAttacks } from "./utils/server-utils.js";
+import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningAttacks, hackServer } from "./utils/server-utils.js";
 import { log } from "./utils/console-utils.js";
 
 /**
@@ -40,9 +40,10 @@ export async function main(ns) {
     // Get all servers and filter out those we can't hack
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
-    const allServers = getAllServers(ns);
     
     while (true) {
+        const allServers = getAllServers(ns);
+
         // Get all servers that could be potential targets
         const potentialTargets = allServers.filter(server => {
             // Only targets with money
@@ -54,7 +55,13 @@ export async function main(ns) {
             // Only use hacked servers not our own
             if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
 
-            return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
+            if (ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel()) return false;
+
+            if (!ns.hasRootAccess(server) && hackServer(ns, server)) {
+                log(ns, `Successfully gained root access on ${server}`, verbose);
+            }
+
+            return true;
         });
 
         // Get running attacks to avoid targeting servers already being attacked
@@ -68,7 +75,6 @@ export async function main(ns) {
         if (serverScores.length === 0) {
             log(ns, "No suitable targets found. Waiting 20 seconds before retrying...", verbose);
             await ns.sleep(20000);
-
             continue;
         }
 
@@ -148,7 +154,7 @@ export async function main(ns) {
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
-                    remainingRam -= growThreads * scriptRams.grow;
+                    remainingRam -= hackThreads * scriptRams.hack;
                     log(ns, `Deployed ${hackThreads} hack threads to ${server}`, verbose);
                 }   
             }
@@ -162,7 +168,8 @@ export async function main(ns) {
         log(ns, `Total weaken threads deployed: ${totalDeployed.weaken}/${requiredThreads.weaken}`, verbose);
     
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
-            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations", verbose);
+            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Sleeping for 60 seconds.", verbose);
+            await ns.sleep(60000);
         }
 
         // Small delay between target selections to prevent overwhelming the system

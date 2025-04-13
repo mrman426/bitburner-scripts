@@ -6,7 +6,7 @@ import { getAllServers, hackServer, getServerAvailableRam } from "./utils/server
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--purchased-only", "--hacked-only"] : data.servers;
+    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked"] : data.servers;
 }
 
 /** @param {NS} ns */
@@ -16,6 +16,9 @@ export async function main(ns) {
         ns.tprint("ERROR: No target specified");
         return;
     }
+
+    const verbose = ns.args.includes("--verbose");
+    const verboseHacked = ns.args.includes("--verbose-hacked");
 
     const scriptRam = ns.getScriptRam("attack.js");
     
@@ -37,13 +40,8 @@ export async function main(ns) {
     
     for (const server of hackableServers) {
         // Try to nuke the server
-        if (!ns.hasRootAccess(server)) {
-            ns.tprint(`Attempting to gain root access on ${server}...`);
-            if (hackServer(ns, server)) {
-                ns.tprint(`Successfully gained root access on ${server}`);
-            } else {
-                ns.tprint(`Not enough ports opened for ${server}. Need ${ns.getServerNumPortsRequired(server)} but only opened ${portsOpened}`);
-            }
+        if (!ns.hasRootAccess(server) && hackServer(ns, server)) {
+            log(ns, `Successfully gained root access on ${server}`, verbose);
         }
         
         // If we have root access, deploy the script
@@ -56,12 +54,12 @@ export async function main(ns) {
             const threads = Math.floor(serverRam / scriptRam);
             
             if (threads > 0) {
-                ns.tprint(`Running ${threads} threads on ${server}`);
+                log(ns, `Running ${threads} threads on ${server}`, verbose);
                 ns.exec("attack.js", server, threads, target);
                 await ns.sleep(500);
             }
         }
     }
     
-    ns.tprint("Deployment complete!");
+    log(ns, "Deployment complete!", verbose);
 } 
