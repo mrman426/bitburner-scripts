@@ -143,9 +143,9 @@ export async function main(ns) {
         for (const server of deployServers) {
             const serverRam = getServerAvailableRam(ns, server);
             if (serverRam > 0) {
-                await ns.scp("share.js", server);
                 const shareThreads = Math.floor(serverRam / ns.getScriptRam("share.js"));
                 if (shareThreads > 0) {
+                    await ns.scp("share.js", server);
                     ns.exec("share.js", server, shareThreads);
                 }
             }
