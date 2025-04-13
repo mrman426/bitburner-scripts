@@ -1,4 +1,4 @@
-import { getAllServers, findPathToServer, calculateRequiredThreads } from "./utils/server.js";
+import { getAllServers, findPathToServer, calculateRequiredThreads, getRunningAttacks } from "./utils/server.js";
 import { listView, detailView } from "./utils/console.js";
 
 /**
@@ -14,6 +14,7 @@ export function autocomplete(data, flags) {
 export async function main(ns) {
     const target = ns.args[0];
     const servers = getAllServers(ns);
+    const attacks = getRunningAttacks(ns, servers);
 
     // Special case for home server
     if (target === "home") {
@@ -24,7 +25,8 @@ export async function main(ns) {
             "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
             "Hack Level": serverInfo.requiredHackingSkill,
             "RAM": `${serverInfo.maxRam}GB`,
-            "Root": serverInfo.hasAdminRights ? "Yes" : "No"
+            "Root": serverInfo.hasAdminRights ? "Yes" : "No",
+            "Attacking": attacks.has("home") ? `${attacks.get("home").threads} threads` : "No"
         };
         ns.tprint("\n=== Home Server Details ===\n" + detailView(serverDetails));
         return;
@@ -45,7 +47,8 @@ export async function main(ns) {
                 "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
                 "Hack Level": serverInfo.requiredHackingSkill,
                 "RAM": `${serverInfo.maxRam}GB`,
-                "Root": serverInfo.hasAdminRights ? "Yes" : "No"
+                "Root": serverInfo.hasAdminRights ? "Yes" : "No",
+                "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No"
             };
         }).sort((a, b) => a["Hack Level"] - b["Hack Level"]);
         ns.tprint("\n=== Purchased Server Detailss ===\n" + listView(serverData));
@@ -88,7 +91,8 @@ export async function main(ns) {
             "Hack Level": serverInfo.requiredHackingSkill,
             "RAM": `${serverInfo.maxRam}GB`,
             "Root": serverInfo.hasAdminRights ? "Yes" : "No",
-            "Threads Required (W+G+H=T)": `${threads.weaken}+${threads.grow}+${threads.hack}=${totalThreads}`
+            "Threads Required (W+G+H=T)": `${threads.weaken}+${threads.grow}+${threads.hack}=${totalThreads}`,
+            "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No"
         };
         
         ns.tprint("\n=== Server Details ===\n" + detailView(serverDetails));
@@ -106,8 +110,9 @@ export async function main(ns) {
                 "Security": serverInfo.hackDifficulty.toFixed(2),
                 "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
                 "Hack Level": serverInfo.requiredHackingSkill,
+                "RAM": `${serverInfo.maxRam}GB`,
                 "Root": serverInfo.hasAdminRights ? "Yes" : "No",
-                //"Path": path
+                "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No"
             };
         }).sort((a, b) => a["Hack Level"] - b["Hack Level"]);
 
