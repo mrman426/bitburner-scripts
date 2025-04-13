@@ -23,38 +23,30 @@ export async function main(ns) {
 
     // Get all servers
     const allServers = getAllServers();
-    const playerHackingLevel = ns.getHackingLevel();
+    const targetServers = allServers.filter(server => {
+        if (server === "home") return false;
+        return ns.hasRootAccess(server);
+    });
     
     // Analyze each server and calculate a score
-    const serverScores = allServers.map(server => {
-        // Skip home server
-        if (server === "home") return null;
-        
+    const serverScores = targetServers.map(server => {
         const maxMoney = ns.getServerMaxMoney(server);
         const minSecurity = ns.getServerMinSecurityLevel(server);
-        const requiredHackingLevel = ns.getServerRequiredHackingLevel(server);
-        const hasRootAccess = ns.hasRootAccess(server);
-        
+
         // Calculate a score based on:
         // 1. Money available (higher is better)
         // 2. Security level (lower is better)
-        // 3. Hacking level requirement (lower is better)
-        // 4. Root access (bonus if we have it)
         const moneyScore = maxMoney / 1000000; // Normalize to millions
         const securityScore = 1 / minSecurity;
-        const hackingScore = playerHackingLevel / requiredHackingLevel;
-        const rootBonus = hasRootAccess ? 1.5 : 1;
         
         // Final score calculation
-        const score = moneyScore * securityScore * hackingScore * rootBonus;
+        const score = moneyScore * securityScore;
         
         return {
             server,
             score,
             maxMoney,
             minSecurity,
-            requiredHackingLevel,
-            hasRootAccess
         };
     }).filter(server => server !== null); // Remove null entries (like home server)
     
@@ -62,14 +54,24 @@ export async function main(ns) {
     serverScores.sort((a, b) => b.score - a.score);
     
     // Display top 5 servers
-    ns.tprint("\nTop 5 Best Servers to Attack:");
-    ns.tprint("==========================================");
-    ns.tprint("Server\t\tScore\t\tMoney\t\tSecurity\tHacking Level\tRoot Access");
-    ns.tprint("==========================================");
+    ns.tprint("\nTop 25 Best Servers to Attack:");
+    ns.tprint("========================================================");
+    ns.tprint("Server\t\tScore\t\tMoney\t\tSecurity");
+    ns.tprint("========================================================");
     
-    for (let i = 0; i < Math.min(5, serverScores.length); i++) {
+    // Find the longest server name
+    const maxServerNameLength = Math.max(...serverScores.map(s => s.server.length));
+    const maxScoreLength = Math.max(...serverScores.map(s => s.score.toFixed(2).length));
+    const maxMoneyLength = Math.max(...serverScores.map(s => ns.formatNumber(s.maxMoney).length));
+    const securityLength = Math.max(...serverScores.map(s => s.minSecurity.toFixed(2).length));
+    
+    for (let i = 0; i < Math.min(25, serverScores.length); i++) {
         const s = serverScores[i];
-        ns.tprint(`${s.server}\t\t${s.score.toFixed(2)}\t\t$${ns.formatNumber(s.maxMoney)}\t${s.minSecurity.toFixed(2)}\t\t${s.requiredHackingLevel}\t\t${s.hasRootAccess ? "Yes" : "No"}`);
+        const paddedServerName = s.server.padEnd(maxServerNameLength);
+        const paddedScore = s.score.toFixed(2).padStart(maxScoreLength);
+        const paddedMoney = ns.formatNumber(s.maxMoney).padStart(maxMoneyLength);
+        const paddedSecurity = s.minSecurity.toFixed(2).padStart(securityLength);
+        ns.tprint(`${paddedServerName}\t${paddedScore}\t\t$${paddedMoney}\t${paddedSecurity}`);
     }
     
     // If we have a best target, return it
