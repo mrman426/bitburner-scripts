@@ -102,7 +102,7 @@ export async function main(ns) {
             const weakenThreads = Math.min(remainingThreads.weaken, Math.floor(remainingRam / scriptRams.weaken));
             if (weakenThreads > 0) {
                 await ns.scp("weaken.js", server);
-                const pid = ns.exec("weaken.js", server, weakenThreads, target, 0);
+                const pid = ns.exec("weaken.js", server, weakenThreads, target, 0, verbose);
                 if (pid > 0) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
@@ -117,7 +117,7 @@ export async function main(ns) {
             const growThreads = Math.min(remainingThreads.grow, Math.floor(remainingRam / scriptRams.grow));
             if (growThreads > 0) {
                 await ns.scp("grow.js", server);
-                const pid = ns.exec("grow.js", server, growThreads, target, 0);
+                const pid = ns.exec("grow.js", server, growThreads, target, 0, verbose);
                 if (pid > 0) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
@@ -132,7 +132,7 @@ export async function main(ns) {
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, Math.max(weakenTime, growTime));
+                const pid = ns.exec("hack.js", server, hackThreads, target, Math.max(weakenTime, growTime), verbose);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
