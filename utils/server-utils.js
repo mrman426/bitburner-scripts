@@ -172,3 +172,9 @@ export function getServerScore(ns, server, scriptRams) {
 
     return baseScore * threadScalingFactor;
 } 
+
+export function getServerMaxRam(ns, server) {
+    if (server === "home") return ns.getServerMaxRam(server) - 16; // Reserve 16GB on home server
+
+    return ns.getServerMaxRam(server);
+}
