@@ -15,14 +15,14 @@ export async function main(ns) {
     ns.disableLog("ALL");
 
     const verbose = ns.args.includes("--verbose");
-    const verboseHacked = ns.args.includes("--verbose-hacked");
+    const verboseHacked = verbose || ns.args.includes("--verbose-hacked");
     const loop = ns.args.includes("--loop");
 
     // Get script RAM requirements
     const scriptRams = {
         hack: ns.getScriptRam("hack.js"),
         grow: ns.getScriptRam("grow.js"),
-        weaken: ns.getScriptRam("weaken.js")
+        weaken: ns.getScriptRam("weaken.js"),
     };
     
     // Get all servers and filter out those we can't hack
