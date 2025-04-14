@@ -163,6 +163,8 @@ export function getServerScores(ns, targetServers) {
             // Skip purchased and home servers
             if (server.startsWith('pserv-') || server === "home") return false;
 
+            if (ns.getServerMaxMoney(server) <= 0) return false;
+
             return true;
         })
         .map(server => {
