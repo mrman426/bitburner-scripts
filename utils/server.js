@@ -279,8 +279,8 @@ export function calculateAttackThreads(ns, target, hackFraction) {
     const changePerHackThread = 0.002;
 
     const w = Math.ceil(h * (changePerHackThread / changePerWeakenThread)); // weaken threads for hack, ceil so that we don't under-weaken
-    const g = Math.ceil(growThreadsRequired * correctionThreads); // threads to grow the amount we want, ceil so that we don't under-grow
-    const gw = Math.ceil(g * (changePerGrowThread / changePerWeakenThread)); // weaken threads for grow, ceil so that we don't under-weaken
+    const g = Math.ceil(growThreadsRequired + correctionThreads); // threads to grow the amount we want, ceil so that we don't under-grow
+    const gw = Math.ceil(g * (changePerGrowThread / changePerWeakenThread) + correctionThreads); // weaken threads for grow, ceil so that we don't under-weaken
 
     return {
         hack: h,
