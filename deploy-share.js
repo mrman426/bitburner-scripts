@@ -73,8 +73,8 @@ export async function main(ns) {
         log(ns, `Remaining RAM to Allocate: ${remainingRam.toFixed(2)}GB`, verbose);
 
         if (loop) {
-            log(ns, "\nChecking again in 10 seconds...", verbose);
-            await ns.sleep(10000);
+            log(ns, "\nChecking again in 30 seconds...", verbose);
+            await ns.sleep(30000);
         }
     } while (loop);
 }
