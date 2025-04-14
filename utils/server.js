@@ -72,9 +72,9 @@ export function getAvailableRam(ns, server) {
     const usedRam = ns.ps(server).reduce((sum, process) => sum + process.threads * ns.getScriptRam(process.filename), 0);
     const availableRam = maxRam - usedRam;
     
-    // Reserve 16GB on home server
+    // Reserve 32GB on home server
     if (server === "home") {
-        return Math.max(0, availableRam - 16);
+        return Math.max(0, availableRam - 32);
     }
     
     return availableRam;

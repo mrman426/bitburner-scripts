@@ -10,7 +10,9 @@ export async function main(ns) {
     const scriptRam = ns.getScriptRam("share.js");
     
     // Get all deployable servers and sort them by max RAM (ascending)
-    const deployServers = getDeployableServers(ns, "", true, false).sort((a, b) => ns.getServerMaxRam(a) - ns.getServerMaxRam(b));
+    const deployServers = getDeployableServers(ns, "", true, false)
+        .filter(server => server !== "home")
+        .sort((a, b) => ns.getServerMaxRam(a) - ns.getServerMaxRam(b));
     
     log(ns, "\n=== RAM Sharing Setup ===", verbose);
     log(ns, `Found ${deployServers.length} deployable servers`, verbose);
