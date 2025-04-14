@@ -2,14 +2,6 @@
 
 ## Getting Started
 
-Take an Algorithms course at rothman university to boost hack level
-
-Hack `n00dles` using
-
-```sh
-run deploy-attack.js n00dles --hacked-only --loop
-```
-
 You can see the servers you can attack with
 
 ```sh
@@ -36,16 +28,38 @@ You can see the purchased servers with
 run show-purchased-servers.js
 ```
 
-When you have enough RAM you can attack a bigger target
+## Attacking
+
+You can see your attacks with
+
+```sh
+run show-attacks.js
+```
+
+### Attack Phase 1
+
+Take an Algorithms course at rothman university to boost hack level
+
+Hack `n00dles` using
+
+```sh
+run deploy-attack.js n00dles --hacked-only --loop
+```
+
+### Attack Phase 2
+
+When you can attack a bigger target while you build up RAM
 
 ```sh
 run deploy-wgh.js --loop --verbose
 ```
 
-You can see the attacks with
+### Attack Phase 3
+
+When you have enough RAM you can attack one or more targets in a loop
 
 ```sh
-run show-attacks.js
+run deploy-pro-hwgw.js catalyst --verbose-hacked --loop
 ```
 
 ## Factions
