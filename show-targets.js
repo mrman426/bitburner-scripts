@@ -9,6 +9,7 @@ export async function main(ns) {
             Server: s.server,
             Score: s.score.toFixed(2),
             Money: `$${ns.formatNumber(s.availableMoney)} / $${ns.formatNumber(s.maxMoney)}`,
+            "Money per Attack": `$${ns.formatNumber(s.moneyPerAttack)}`,
             Security: `${s.security.toFixed(2)} / ${s.minSecurity.toFixed(2)}`,
             'Time (s)': (s.timeToAttack / 1000).toFixed(2),
             'Threads (w/g/h)': `${s.threads.weaken}/${s.threads.grow}/${s.threads.hack}`

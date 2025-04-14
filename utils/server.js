@@ -173,6 +173,8 @@ export function getServerScores(ns, targetServers) {
             const security = ns.getServerSecurityLevel(server);
             const minSecurity = ns.getServerMinSecurityLevel(server);
             const timeToAttack = ns.getWeakenTime(server);
+            const hackPercent = 0.25; // Percent of money we want to hack
+            const moneyPerAttack = maxMoney * hackPercent
 
             // Calculate required threads
             const threads = calculateAttackThreads(ns, server, 0.25);
@@ -199,6 +201,7 @@ export function getServerScores(ns, targetServers) {
                 timeToAttack,
                 threads,
                 totalThreads,
+                moneyPerAttack,
             };
         });
 }
