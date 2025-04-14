@@ -63,6 +63,10 @@ export async function main(ns) {
         // Calculate timing for operations
         const weakenTime = ns.getWeakenTime(target);
         const growTime = ns.getGrowTime(target);
+        const hackTime = ns.getHackTime(target);
+        const weakenWaitTime = 0;
+        const growWaitTime = Math.max(weakenTime, growTime) - growTime + 500;
+        const hackWaitTime = Math.max(weakenTime, growTime, hackTime) - hackTime + 1500;
 
         log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}] [Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s]`, verbose);
         log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`, verbose);
@@ -97,7 +101,7 @@ export async function main(ns) {
             const weakenThreads = Math.min(remainingThreads.weaken, Math.floor(remainingRam / scriptRams.weaken));
             if (weakenThreads > 0) {
                 await ns.scp("weaken.js", server);
-                const pid = ns.exec("weaken.js", server, weakenThreads, target, 0, verbose);
+                const pid = ns.exec("weaken.js", server, weakenThreads, target, weakenWaitTime, verbose);
                 if (pid > 0) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
@@ -109,7 +113,7 @@ export async function main(ns) {
             const growThreads = Math.min(remainingThreads.grow, Math.floor(remainingRam / scriptRams.grow));
             if (growThreads > 0) {
                 await ns.scp("grow.js", server);
-                const pid = ns.exec("grow.js", server, growThreads, target, 0, verbose);
+                const pid = ns.exec("grow.js", server, growThreads, target, growWaitTime, verbose);
                 if (pid > 0) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
@@ -121,15 +125,13 @@ export async function main(ns) {
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, Math.max(weakenTime, growTime), verboseHacked);
+                const pid = ns.exec("hack.js", server, hackThreads, target, hackWaitTime, verboseHacked);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
                     remainingRam -= hackThreads * scriptRams.hack;
                 }   
             }
-
-            await ns.sleep(50);
         }
         
         log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Grow: ${totalDeployed.grow}] [Weaken: ${totalDeployed.weaken}]`, verbose);
@@ -139,7 +141,6 @@ export async function main(ns) {
             await ns.sleep(30000);
         }
 
-        // Small delay between target selections to prevent overwhelming the system
         await ns.sleep(1000);
     }
 } 
