@@ -21,13 +21,13 @@ buy -a
 Also purchase servers for more RAM
 
 ```
-run purchase-servers.js --verbose
+run purchase-servers.js --loop --verbose
 ```
 
 When you have enough RAM you can attack a bigger target
 
 ```
-run deploy-wgh.js --verbose
+run deploy-wgh.js --loop --verbose
 ```
 
 ## Factions

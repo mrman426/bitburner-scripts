@@ -6,7 +6,7 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--verbose"] : data.servers;
+    return args.length === 0 ? ["--verbose", "--loop"] : data.servers;
 }
 
 /** @param {NS} ns */
@@ -14,12 +14,13 @@ export async function main(ns) {
     ns.disableLog("ALL");
 
     const verbose = ns.args.includes("--verbose");
+    const loop = ns.args.includes("--loop");
     const minRam = 64; // Mimum RAM to buy
     const maxServers = 25; // Maximum number of servers you can own
     const serverPrefix = "pserv-"; // Prefix for purchased servers
     const sleepTime = 60000; // Sleep for 1 minute between checks
 
-    while (true) {
+    do {
         // Get current money
         const money = ns.getServerMoneyAvailable("home");
         
@@ -115,6 +116,8 @@ export async function main(ns) {
         }
 
         // Sleep before next iteration
-        await ns.sleep(sleepTime);
-    }
+        if (loop) {
+            await ns.sleep(sleepTime);
+        }
+    } while (loop);
 } 

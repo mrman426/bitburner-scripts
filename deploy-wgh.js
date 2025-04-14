@@ -7,7 +7,7 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked"] : data.servers;
+    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--loop"] : data.servers;
 }
 
 /** @param {NS} ns */
@@ -16,6 +16,7 @@ export async function main(ns) {
 
     const verbose = ns.args.includes("--verbose");
     const verboseHacked = ns.args.includes("--verbose-hacked");
+    const loop = ns.args.includes("--loop");
 
     // Get script RAM requirements
     const scriptRams = {
@@ -28,7 +29,7 @@ export async function main(ns) {
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     
-    while (true) {
+    do {
         const allServers = getAllServers(ns);
 
         // Get all servers that could be potential targets
@@ -141,6 +142,8 @@ export async function main(ns) {
             await ns.sleep(30000);
         }
 
-        await ns.sleep(1000);
-    }
+        if (loop) {
+            await ns.sleep(1000);
+        }
+    } while (loop);
 } 
