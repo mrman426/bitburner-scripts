@@ -171,12 +171,8 @@ export function getServerScores(ns, targetServers) {
             const timeToAttack = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + ns.getHackTime(server);
 
             // Calculate required threads
-            const threads = {
-                weaken: calculateRequiredThreads(ns, server, 'weaken'),
-                grow: calculateRequiredThreads(ns, server, 'grow'),
-                hack: calculateRequiredThreads(ns, server, 'hack')
-            };
-            const totalThreads = threads.weaken + threads.grow + threads.hack;
+            const threads = calculateAttackThreads(ns, server, 0.25);
+            const totalThreads = threads.weaken + threads.grow + threads.growWeaken + threads.hack;
 
             // Calculate a score based on:
             // 1. Money available (higher is better)
@@ -201,6 +197,7 @@ export function getServerScores(ns, targetServers) {
 }
 
 /**
+ * NOT USED, DO WE WANT ANY OF THE LOGIC FROM HERE?
  * Calculate a score for a server based on various metrics to determine its hack value
  * @param {NS} ns - Netscript API
  * @param {string} server - Server to score
@@ -255,6 +252,37 @@ export function getServerAvailableRam(ns, server) {
     return getServerMaxRam(ns, server) - ns.getServerUsedRam(server);
 }
 
+/**
+ * Threads required for a full Hack Weaken Grow Weaken (HWGW) attack.
+ *
+ * @param {Server} targetServer
+ * @param {number} hackFraction between 0 and 1
+ * @return {Object}
+ */
+export function calculateAttackThreads(ns, target, hackFraction) {
+    const percentStolenPerThread = ns.hackAnalyze(target); // percent of money stolen with a single thread
+    const h = Math.floor(hackFraction / percentStolenPerThread); // threads to hack the amount we want, floor so that we don't over-hack
+    const hackedFraction = h * percentStolenPerThread; // < ~0.8 - the percent we actually hacked
+    const remainingPercent = Math.max(0.0001, 1 - hackedFraction); // Ensure remainingPercent is never <= 0
+    const growthRequired = 1 / remainingPercent; // Calculate growth required safely
+    const growThreadsRequired = ns.growthAnalyze(target, growthRequired); // how many threads to grow the money by ~5x
+    const correctionThreads = 1; // + (hackedFraction * 0.75) // some threads in case there is a misfire, the more hackedFraction the more threads
+    const changePerWeakenThread = 0.002;
+    const changePerGrowThread = 0.004;
+    const changePerHackThread = 0.002;
+
+    const g = Math.ceil(growThreadsRequired * correctionThreads); // threads to grow the amount we want, ceil so that we don't under-grow
+    const w = Math.ceil(h * (changePerHackThread / changePerWeakenThread)); // weaken threads for hack, ceil so that we don't under-weaken
+    const gw = Math.ceil(g * (changePerGrowThread / changePerWeakenThread)); // weaken threads for grow, ceil so that we don't under-weaken
+
+    return {
+        hack: h,
+        weaken: w,
+        grow: g,
+        growWeaken: gw,
+    };
+}
+
 /** @param {NS} ns */
 export function calculateRequiredThreads(ns, target, operation) {
     const maxMoney = ns.getServerMaxMoney(target);
@@ -287,7 +315,15 @@ export function calculateRequiredThreads(ns, target, operation) {
             const securityDiff = currentSecurity - minSecurity;
             const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
             return Math.ceil(weakenThreads);
+
+        case 'growWeaken':
+            return 0;
+            // if (currentSecurity <= minSecurity + 1) return 0;
+            // const securityDiff = currentSecurity - minSecurity;
+            // const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
+            // return Math.ceil(weakenThreads);
         
+    
         default:
             return 0;
     }
