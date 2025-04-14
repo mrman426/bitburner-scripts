@@ -7,7 +7,7 @@ Take an Algorithms course at rothman university to boost hack level
 Hack `n00dles` using
 
 ```sh
-run deploy-attack.js n00dles --hacked-only
+run deploy-attack.js n00dles --hacked-only --loop
 ```
 
 You can see the servers you can attack with
