@@ -44,8 +44,9 @@ export async function main(ns) {
         log(ns, `Total Usage: ${(totalUsedRam / totalMaxRam * 100).toFixed(2)}%`, verbose);
 
         if (totalUsedRam / totalMaxRam > 0.8) {
-            log(ns, "RAM usage is above 80%. Stopping deployment.", verbose);
-            break;
+            log(ns, "RAM usage is above 80%. Waiting 30 seconds....", verbose);
+            await ns.sleep(30000);
+            continue;
         }
 
         let totalThreads = 0;
