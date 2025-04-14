@@ -38,30 +38,27 @@ export async function main(ns) {
             totalAvailableRam += availableRam;
         }
 
-        const targetRam = totalMaxRam * 0.8; // 80% of total RAM
-        let remainingRam = targetRam - totalUsedRam; // Remaining RAM to allocate for "share.js"
-        let totalThreads = 0;
-
         log(ns, `\n=== RAM Sharing Status ===`, verbose);
         log(ns, `Total Max RAM: ${totalMaxRam}GB`, verbose);
         log(ns, `Total Used RAM: ${totalUsedRam.toFixed(2)}GB`, verbose);
-        log(ns, `Target RAM (80%): ${targetRam.toFixed(2)}GB`, verbose);
+        log(ns, `Total Usage: ${(totalUsedRam / totalMaxRam * 100).toFixed(2)}%`, verbose);
+
+        if (totalUsedRam / totalMaxRam > 0.8) {
+            log(ns, "RAM usage is above 80%. Stopping deployment.", verbose);
+            break;
+        }
+
+        let totalThreads = 0;
 
         for (const server of deployServers) {
-            if (remainingRam <= 0) break; // Stop if we've allocated all target RAM
-
             const maxRam = ns.getServerMaxRam(server);
             const usedRam = ns.getServerUsedRam(server);
             const availableRam = maxRam - usedRam;
 
-            // Allocate only up to the remaining RAM needed
-            const allocatableRam = Math.min(availableRam, remainingRam);
-            const threads = Math.floor(allocatableRam / scriptRam);
+            const threads = Math.floor(availableRam / scriptRam);
 
             if (threads > 0) {
                 totalThreads += threads;
-                remainingRam -= threads * scriptRam;
-
                 log(ns, `${server}: [RAM: ${usedRam.toFixed(2)}GB / ${maxRam}GB used] [Running ${threads} share threads]`, verbose);
                 ns.exec("share.js", server, threads);
             }
@@ -70,7 +67,6 @@ export async function main(ns) {
         log(ns, `\n=== Summary ===`, verbose);
         log(ns, `Total Servers: ${deployServers.length}`, verbose);
         log(ns, `Total Threads Allocated: ${totalThreads}`, verbose);
-        log(ns, `Remaining RAM to Allocate: ${remainingRam.toFixed(2)}GB`, verbose);
 
         if (loop) {
             log(ns, "\nChecking again in 30 seconds...", verbose);
