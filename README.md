@@ -30,6 +30,12 @@ Also purchase servers for more RAM
 run purchase-servers.js --loop --verbose
 ```
 
+You can see the purchased servers with
+
+```
+run show-purchased-servers.js
+```
+
 When you have enough RAM you can attack a bigger target
 
 ```
