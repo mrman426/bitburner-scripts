@@ -59,7 +59,7 @@ run deploy-wgh.js --loop --verbose
 When you have enough RAM you can attack one or more targets in a loop
 
 ```sh
-run deploy-pro-hwgw.js catalyst --verbose-hacked --loop
+run deploy-pro-hwgw.js phantasy --verbose-hacked --loop
 ```
 
 ## Factions
