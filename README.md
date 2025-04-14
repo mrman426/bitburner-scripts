@@ -68,3 +68,11 @@ You can see the current shares using
 ```
 run show-shares.js
 ```
+
+## Hacknet
+
+To automatically buy hacknet nodes (requires `Formulas.exe`)
+
+```
+run hacknet-manager.js --loop
+```

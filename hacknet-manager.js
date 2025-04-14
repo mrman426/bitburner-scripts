@@ -1,12 +1,14 @@
 /** @param {NS} ns */
 export async function main(ns) {
+    const loop = ns.args.includes("--loop");
+
     // Constants for upgrade thresholds
     const MAX_NODES = ns.hacknet.maxNumNodes();
     
     // Disable logging to reduce spam
     ns.disableLog("ALL");
     
-    while (true) {
+    do {
         const money = ns.getServerMoneyAvailable("home");
         const numNodes = ns.hacknet.numNodes();
         
@@ -133,5 +135,5 @@ export async function main(ns) {
             }
             await ns.sleep(30000);
         }
-    }
+    } while (loop);
 }
