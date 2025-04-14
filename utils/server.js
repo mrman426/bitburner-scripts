@@ -168,9 +168,11 @@ export function getServerScores(ns, targetServers) {
             return true;
         })
         .map(server => {
+            const availableMoney = ns.getServerMoneyAvailable(server);
             const maxMoney = ns.getServerMaxMoney(server);
+            const security = ns.getServerSecurityLevel(server);
             const minSecurity = ns.getServerMinSecurityLevel(server);
-            const timeToAttack = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + ns.getHackTime(server);
+            const timeToAttack = ns.getWeakenTime(server);
 
             // Calculate required threads
             const threads = calculateAttackThreads(ns, server, 0.25);
@@ -190,10 +192,13 @@ export function getServerScores(ns, targetServers) {
             return {
                 server,
                 score,
+                availableMoney,
                 maxMoney,
+                security,
                 minSecurity,
                 timeToAttack,
                 threads,
+                totalThreads,
             };
         });
 }
@@ -273,8 +278,8 @@ export function calculateAttackThreads(ns, target, hackFraction) {
     const changePerGrowThread = 0.004;
     const changePerHackThread = 0.002;
 
-    const g = Math.ceil(growThreadsRequired * correctionThreads); // threads to grow the amount we want, ceil so that we don't under-grow
     const w = Math.ceil(h * (changePerHackThread / changePerWeakenThread)); // weaken threads for hack, ceil so that we don't under-weaken
+    const g = Math.ceil(growThreadsRequired * correctionThreads); // threads to grow the amount we want, ceil so that we don't under-grow
     const gw = Math.ceil(g * (changePerGrowThread / changePerWeakenThread)); // weaken threads for grow, ceil so that we don't under-weaken
 
     return {

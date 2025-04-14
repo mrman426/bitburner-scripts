@@ -1,4 +1,4 @@
-import { getAllServers, getServerAvailableRam, calculateAttackThreads, getServerScores, getRunningAttacks, hackServer } from "./utils/server.js";
+import { getAllServers, getServerAvailableRam, calculateAttackThreads, hackServer } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -7,15 +7,23 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return ["--purchased-only", "--hacked-only", "--verbose", "--loop"];
+    if (args.length === 1) return data.servers;
+    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--loop"];
 }
 
 /** @param {NS} ns */
 export async function main(ns) {
     ns.disableLog("ALL");
 
+    const target = ns.args[0];
+    if (!target) {
+        ns.tprint("ERROR: No target specified");
+        return;
+    }
+
+    const loop = ns.args.includes("--loop");
     const verbose = ns.args.includes("--verbose");
-    const verboseHacked = ns.args.includes("--verbose-hacked");
+    const verboseHacked = verbose || ns.args.includes("--verbose-hacked");
 
     // Get script RAM requirements
     const scriptRams = {
@@ -28,49 +36,26 @@ export async function main(ns) {
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     
-    while (true) {
-        const allServers = getAllServers(ns);
+    // Calculate required threads for each operation
+    const requiredThreads = calculateAttackThreads(ns, target, 0.25)
 
-        // Get all servers that could be potential targets
-        const potentialTargets = allServers.filter(server => {
-            if (ns.getServerMaxMoney(server) <= 0) return false;
-            return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
-        });
+    // Calculate timing for operations
+    const weakenTime = ns.getWeakenTime(target);
+    const growTime = ns.getGrowTime(target);
+    const hackTime = ns.getHackTime(target);
+    const hackWaitTime = weakenTime - hackTime;
+    const weakenWaitTime = 100;
+    const growWaitTime = weakenTime - growTime + 200;
+    const growWeakenWaitTime = 300;
 
-        // Get running attacks to avoid targeting servers already being attacked
-        const runningAttacks = getRunningAttacks(ns, allServers);
-        
-        // Get server scores and filter out servers under attack
-        const serverScores = getServerScores(ns, potentialTargets)
-            .filter(server => !runningAttacks.has(server.server))
-            .sort((a, b) => b.score - a.score);
+    log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(ns.getServerMaxMoney(target))}] [Time to Attack: ${(ns.getWeakenTime(target) / 1000).toFixed(1)}s]`, verbose);
+    log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Weaken: ${requiredThreads.weaken}] [Grow: ${requiredThreads.grow}] [GrowWeaken: ${requiredThreads.growWeaken}]`, verbose);
 
-        if (serverScores.length === 0) {
-            log(ns, "WARNING: No suitable targets found. Waiting 30 seconds before retrying...", verbose);
-            await ns.sleep(30000);
-            continue;
-        }
-
-        const target = serverScores[0].server;
-
-        // Calculate required threads for each operation
-        const requiredThreads = calculateAttackThreads(ns, target, 0.25)
-
-        // Calculate timing for operations
-        const weakenTime = ns.getWeakenTime(target);
-        const growTime = ns.getGrowTime(target);
-        const hackTime = ns.getHackTime(target);
-
-        const weakenWaitTime = 2000;
-        const growWaitTime = weakenTime - growTime + weakenWaitTime - 500;
-        const growWeakenWaitTime = weakenWaitTime + weakenWaitTime - 1000;
-        const hackWaitTime = weakenTime - hackTime + weakenWaitTime - 1500;
-
-        log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}] [Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s]`, verbose);
-        log(ns, `Required Threads: [Weaken: ${requiredThreads.weaken}] [Grow: ${requiredThreads.grow}] [GrowWeaken: ${requiredThreads.growWeaken}] [Hack: ${requiredThreads.hack}]`, verbose);
-        
+    //const attackTimes = Math.floor(weakenTime * 0.9 / 1000);
+    //for (let i=0; i < attackTimes; i++) {
+    do {
         // Get deployable servers
-        const deployServers = allServers
+        const deployServers = getAllServers(ns)
             .filter(server => {
                 if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
                 if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
@@ -143,14 +128,14 @@ export async function main(ns) {
                 }   
             }
         }
-        
-        log(ns, `Deployed Threads: [Weaken: ${totalDeployed.weaken}] [Grow: ${totalDeployed.grow}] [GrowWeaken: ${totalDeployed.growWeaken}] [Hack: ${totalDeployed.hack}]`, verbose);
+
+        log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Weaken: ${totalDeployed.weaken}] [Grow: ${totalDeployed.grow}] [GrowWeaken: ${totalDeployed.growWeaken}]`, verbose);
+        await ns.sleep(2000);
 
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
             log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Waiting 30 seconds before retrying...", verbose);
             await ns.sleep(30000);
+            break;
         }
-
-        await ns.sleep(1000);
-    }
+    } while (loop);
 } 

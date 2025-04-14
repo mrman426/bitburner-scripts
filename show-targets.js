@@ -8,8 +8,8 @@ export async function main(ns) {
         .map(s => ({
             Server: s.server,
             Score: s.score.toFixed(2),
-            Money: `$${ns.formatNumber(s.maxMoney)}`,
-            Security: s.minSecurity.toFixed(2),
+            Money: `$${ns.formatNumber(s.availableMoney)} / $${ns.formatNumber(s.maxMoney)}`,
+            Security: `${s.security.toFixed(2)} / ${s.minSecurity.toFixed(2)}`,
             'Time (s)': (s.timeToAttack / 1000).toFixed(2),
             'Threads (w/g/h)': `${s.threads.weaken}/${s.threads.grow}/${s.threads.hack}`
         }));
