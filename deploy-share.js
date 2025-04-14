@@ -1,6 +1,15 @@
 import { getDeployableServers, getAvailableRam } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
+/**
+ * @param {AutocompleteData} data - context about the game, useful when autocompleting
+ * @param {string[]} args - current arguments, not including "run script.js"
+ * @returns {string[]} - the array of possible autocomplete options
+ */
+export function autocomplete(data, args) {
+    return ["--verbose", "--loop"];
+}
+
 /** @param {NS} ns */
 export async function main(ns) {
     ns.disableLog("ALL");

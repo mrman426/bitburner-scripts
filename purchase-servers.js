@@ -6,7 +6,7 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--verbose", "--loop"] : data.servers;
+    return ["--verbose", "--loop"];
 }
 
 /** @param {NS} ns */
@@ -113,8 +113,6 @@ export async function main(ns) {
         const totalCost = serversToBuy * maxAffordableCost;
 
         if (serversToBuy > 0) {
-            log(ns, `Purchasing ${serversToBuy} server(s) with ${maxAffordableRam}GB RAM for $${totalCost}`, verbose);
-            
             // Find the next available server number
             let nextServerNum = 0;
             while (existingServers.includes(serverPrefix + nextServerNum)) {
@@ -125,10 +123,10 @@ export async function main(ns) {
             for (let i = 0; i < serversToBuy; i++) {
                 const serverName = serverPrefix + (nextServerNum + i);
                 ns.purchaseServer(serverName, maxAffordableRam);
-                log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM`, verbose);
+                log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(totalCost)}`, verbose);
             }
         } else {
-            log(ns, `Not enough money to purchase a server. Need $${maxAffordableCost} for ${maxAffordableRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
+            log(ns, `Not enough money to purchase a server. Need $${ns.formatNumber(maxAffordableCost)} for ${maxAffordableRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
         }
 
         // Sleep before next iteration

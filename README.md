@@ -7,7 +7,7 @@ Take an Algorithms course at rothman university to boost hack level
 Hack `n00dles` using
 
 ```sh
-run deploy-attack.js n00dles --hacked-only
+run deploy-attack.js n00dles --hacked-only --loop
 ```
 
 You can see the servers you can attack with
@@ -71,8 +71,8 @@ run show-shares.js
 
 ## Hacknet
 
-To automatically buy hacknet nodes (requires `Formulas.exe`)
+To automatically purchase hacknet nodes (requires `Formulas.exe`)
 
 ```sh
-run hacknet-manager.js --loop
+run purchase-hacknet.js --loop
 ```

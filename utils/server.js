@@ -286,10 +286,10 @@ export function calculateAttackThreads(ns, target, hackFraction) {
 /** @param {NS} ns */
 export function calculateRequiredThreads(ns, target, operation) {
     const maxMoney = ns.getServerMaxMoney(target);
-    const currentMoney = ns.getServerMoneyAvailable(target);
+    const currentMoney = Math.max(1, ns.getServerMoneyAvailable(target));
     const currentSecurity = ns.getServerSecurityLevel(target);
     const minSecurity = ns.getServerMinSecurityLevel(target);
-    
+
     switch (operation) {
         case 'hack':
             // Calculate optimal hack amount based on server's growth rate
