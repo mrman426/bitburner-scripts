@@ -56,7 +56,13 @@ export async function main(ns) {
             const usedRam = ns.getServerUsedRam(server);
             const availableRam = maxRam - usedRam;
 
-            const threads = Math.floor(availableRam / scriptRam);
+            // Calculate the maximum threads that can be deployed without exceeding 80% RAM usage
+            const maxAllowedRam = maxRam * 0.8; // 80% of max RAM
+            const remainingAllowedRam = maxAllowedRam - usedRam;
+
+            // Use the smaller value between available RAM and remaining allowed RAM
+            const deployableRam = Math.min(availableRam, remainingAllowedRam);
+            const threads = Math.floor(deployableRam / scriptRam);
 
             if (threads > 0) {
                 totalThreads += threads;
