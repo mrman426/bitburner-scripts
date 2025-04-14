@@ -45,7 +45,7 @@ export async function main(ns) {
 
         // Don't buy servers with less than 64GB RAM
         if (maxAffordableRam < minRam) {
-            log(ns, `Not enough money to buy a server with at least ${minRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
+            log(ns, `WARNINIG: Not enough money to buy a server with at least ${minRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
             await ns.sleep(sleepTime);
             continue;
         }
@@ -53,6 +53,22 @@ export async function main(ns) {
         // Get list of existing purchased servers
         const existingServers = ns.getPurchasedServers();
         const availableSlots = maxServers - existingServers.length;
+
+        // Get the maximum RAM of currently owned servers
+        let maxOwnedRam = 0;
+        for (const server of existingServers) {
+            const ram = ns.getServerMaxRam(server);
+            if (ram > maxOwnedRam) {
+                maxOwnedRam = ram;
+            }
+        }
+
+        // Don't buy servers with less RAM than the owned server with the most RAM
+        if (maxAffordableRam <= maxOwnedRam) {
+            log(ns, `WARNINIG: Not purchasing a server with ${maxAffordableRam}GB RAM as it is less than or equal to the maximum owned server RAM (${maxOwnedRam}GB). Checking again in ${sleepTime / 1000} seconds...`, verbose);
+            await ns.sleep(sleepTime);
+            continue;
+        }
 
         if (availableSlots <= 0) {
             // Find the server with the least RAM (only considering servers with our prefix)
@@ -71,7 +87,7 @@ export async function main(ns) {
             }
             
             if (worstServer && minRam < maxAffordableRam) {
-                log(ns, `Selling worst server ${worstServer} with ${minRam}GB RAM to make room for a better one`, verbose);
+                log(ns, `INFO: Selling worst server ${worstServer} with ${minRam}GB RAM to make room for a better one`, verbose);
                 
                 // Kill all running scripts on the server before deletion
                 ns.killall(worstServer);
@@ -116,8 +132,6 @@ export async function main(ns) {
         }
 
         // Sleep before next iteration
-        if (loop) {
-            await ns.sleep(sleepTime);
-        }
+        await ns.sleep(sleepTime);
     } while (loop);
-} 
+}
