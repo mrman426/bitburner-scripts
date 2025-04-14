@@ -71,8 +71,8 @@ run show-shares.js
 
 ## Hacknet
 
-To automatically buy hacknet nodes (requires `Formulas.exe`)
+To automatically purchase hacknet nodes (requires `Formulas.exe`)
 
 ```sh
-run hacknet-manager.js --loop
+run purchase-hacknet.js --loop
 ```
