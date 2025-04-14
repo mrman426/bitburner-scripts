@@ -1,4 +1,4 @@
-import { getAllServers, getServerScores } from "./utils/server-utils.js";
+import { getAllServers, getServerScores } from "./utils/server.js";
 import { listView } from "./utils/console.js";
 
 /** @param {NS} ns */
