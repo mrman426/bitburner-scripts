@@ -60,10 +60,11 @@ export async function main(ns) {
         const weakenTime = ns.getWeakenTime(target);
         const growTime = ns.getGrowTime(target);
         const hackTime = ns.getHackTime(target);
-        const weakenWaitTime = 0;
-        const growWaitTime = Math.max(weakenTime, growTime) - growTime + 500;
-        const growWeakenWaitTime = Math.max(weakenTime, growTime) - weakenTime + 1000;
-        const hackWaitTime = Math.max(weakenTime, growTime, hackTime) - hackTime + 1500;
+
+        const weakenWaitTime = 2000;
+        const growWaitTime = weakenTime - growTime + weakenWaitTime - 500;
+        const growWeakenWaitTime = weakenWaitTime + weakenWaitTime - 1000;
+        const hackWaitTime = weakenTime - hackTime + weakenWaitTime - 1500;
 
         log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}] [Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s]`, verbose);
         log(ns, `Required Threads: [Weaken: ${requiredThreads.weaken}] [Grow: ${requiredThreads.grow}] [GrowWeaken: ${requiredThreads.growWeaken}] [Hack: ${requiredThreads.hack}]`, verbose);
