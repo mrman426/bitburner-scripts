@@ -230,12 +230,12 @@ export function formatDelay(ns, value) {
  * Format a delay and end time
  *
  * @param {NS} ns
- * @param delay time in milliseconds
+ * @param start time in milliseconds
  * @param end time in milliseconds
  * @returns {string}
  */
-export function formatTimes(ns, delay, end) {
-    return this.formatTime(ns, delay) + '-' + this.formatTime(ns, end)
+export function formatTimes(ns, start, end) {
+    return this.formatTime(ns, start) + '-' + this.formatTime(ns, end)
 }
 
 /**
