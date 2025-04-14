@@ -7,7 +7,8 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return args.length === 0 ? ["--purchased-only", "--hacked-only", "--verbose", "--loop"] : data.servers;
+    if (args.length === 1) return data.servers;
+    return ["--purchased-only", "--hacked-only", "--verbose", "--loop"];
 }
 
 /** @param {NS} ns */
