@@ -1,7 +1,6 @@
 /** @param {NS} ns */
 export async function main(ns) {
     // Constants for upgrade thresholds
-    const MIN_UPGRADE_MULTIPLIER = 1.1; // Only upgrade if it provides at least 10% more production
     const MAX_NODES = ns.hacknet.maxNumNodes();
     
     // Disable logging to reduce spam
@@ -12,13 +11,13 @@ export async function main(ns) {
         const numNodes = ns.hacknet.numNodes();
         
         // Calculate cost-effectiveness for each upgrade type
-        let bestUpgrade = { type: null, nodeIndex: null, cost: Infinity, productionIncrease: 0 };
-        
+        let bestUpgrade = { type: null, nodeIndex: null, cost: null, productionIncrease: 0 };
+
         // Check each existing node for upgrade opportunities
         for (let i = 0; i < numNodes; i++) {
             const node = ns.hacknet.getNodeStats(i);
             const currentProduction = node.production;
-            
+
             // Check level upgrade
             const levelCost = ns.hacknet.getLevelUpgradeCost(i, 1);
             const levelProduction = ns.formulas.hacknetNodes.moneyGainRate(
@@ -29,10 +28,9 @@ export async function main(ns) {
             );
             const levelIncrease = levelProduction - currentProduction;
             const levelCostEffectiveness = levelIncrease / levelCost;
-            
-            if (levelCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost && 
-                levelCost <= money && 
-                levelIncrease / currentProduction >= MIN_UPGRADE_MULTIPLIER) {
+
+            if ((!bestUpgrade.cost || levelCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost) &&
+                levelCost <= money) {
                 bestUpgrade = {
                     type: "level",
                     nodeIndex: i,
@@ -40,7 +38,7 @@ export async function main(ns) {
                     productionIncrease: levelIncrease
                 };
             }
-            
+
             // Check RAM upgrade
             const ramCost = ns.hacknet.getRamUpgradeCost(i, 1);
             const ramProduction = ns.formulas.hacknetNodes.moneyGainRate(
@@ -51,10 +49,9 @@ export async function main(ns) {
             );
             const ramIncrease = ramProduction - currentProduction;
             const ramCostEffectiveness = ramIncrease / ramCost;
-            
-            if (ramCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost && 
-                ramCost <= money && 
-                ramIncrease / currentProduction >= MIN_UPGRADE_MULTIPLIER) {
+
+            if ((!bestUpgrade.cost || ramCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost) &&
+                ramCost <= money) {
                 bestUpgrade = {
                     type: "ram",
                     nodeIndex: i,
@@ -62,7 +59,7 @@ export async function main(ns) {
                     productionIncrease: ramIncrease
                 };
             }
-            
+
             // Check core upgrade
             const coreCost = ns.hacknet.getCoreUpgradeCost(i, 1);
             const coreProduction = ns.formulas.hacknetNodes.moneyGainRate(
@@ -73,10 +70,9 @@ export async function main(ns) {
             );
             const coreIncrease = coreProduction - currentProduction;
             const coreCostEffectiveness = coreIncrease / coreCost;
-            
-            if (coreCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost && 
-                coreCost <= money && 
-                coreIncrease / currentProduction >= MIN_UPGRADE_MULTIPLIER) {
+
+            if ((!bestUpgrade.cost || coreCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost) &&
+                coreCost <= money) {
                 bestUpgrade = {
                     type: "core",
                     nodeIndex: i,
@@ -85,26 +81,25 @@ export async function main(ns) {
                 };
             }
         }
-        
+
         // Check if buying a new node is more cost-effective
         if (numNodes < MAX_NODES) {
             const newNodeCost = ns.hacknet.getPurchaseNodeCost();
-            const newNode = ns.hacknet.getNodeStats(numNodes);
-            const newNodeProduction = ns.formulas.hacknetNodes.moneyGainRate(
-                newNode.level,
-                newNode.ram,
-                newNode.cores,
+            const baseProduction = ns.formulas.hacknetNodes.moneyGainRate(
+                1, // Default level for a new node
+                1, // Default RAM for a new node
+                1, // Default cores for a new node
                 ns.getHacknetMultipliers().production
             );
-            const newNodeCostEffectiveness = newNodeProduction / newNodeCost;
-            
-            if (newNodeCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost && 
+            const newNodeCostEffectiveness = baseProduction / newNodeCost;
+
+            if ((!bestUpgrade.cost || newNodeCostEffectiveness > bestUpgrade.productionIncrease / bestUpgrade.cost) &&
                 newNodeCost <= money) {
                 bestUpgrade = {
                     type: "new",
                     nodeIndex: numNodes,
                     cost: newNodeCost,
-                    productionIncrease: newNodeProduction
+                    productionIncrease: baseProduction
                 };
             }
         }
@@ -131,7 +126,12 @@ export async function main(ns) {
             }
         } else {
             // If no upgrades are cost-effective, wait a bit before checking again
-            await ns.sleep(1000);
+            if (bestUpgrade.type) {
+                ns.print(`WARNING: Cannot afford ${bestUpgrade.type} for $${bestUpgrade.cost}, waiting 30 seconds...`);
+            } else {
+                ns.print(`WARNING: No upgrades available, waiting 30 seconds...`);
+            }
+            await ns.sleep(30000);
         }
     }
-} 
+}
