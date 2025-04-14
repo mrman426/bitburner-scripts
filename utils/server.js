@@ -350,3 +350,24 @@ export function getRunningAttacks(ns, allServers) {
     
     return attacks;
 }
+
+/** @param {NS} ns */
+export function getRunningShares(ns, allServers) {
+    const shares = new Map(); // target -> {threads}
+    
+    for (const server of allServers) {
+        const processes = ns.ps(server);
+        for (const process of processes) {
+            if (process.filename === "share.js") {
+                if (!shares.has(server)) {
+                    shares.set(server, { threads: 0 });
+                }
+                const share = shares.get(server);
+                share.threads += process.threads;
+            }
+        }
+    }
+    
+    return shares;
+}
+
