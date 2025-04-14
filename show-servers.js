@@ -81,7 +81,8 @@ export async function main(ns) {
             hack: calculateRequiredThreads(ns, server, 'hack')
         };
         const totalThreads = threads.weaken + threads.grow + threads.hack;
-        
+
+        // Calculate server details
         const serverDetails = {
             "Server": server,
             "Path": path,
@@ -91,7 +92,8 @@ export async function main(ns) {
             "RAM": `${serverInfo.maxRam}GB`,
             "Root": serverInfo.hasAdminRights ? "Yes" : "No",
             "Threads Required (W+G+H=T)": `${threads.weaken}+${threads.grow}+${threads.hack}=${totalThreads}`,
-            "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No"
+            "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No",
+            "Time to Attack": `${(ns.getWeakenTime(server) / 1000).toFixed(1)}s`,
         };
         
         ns.tprint("\n=== Server Details ===\n" + detailView(serverDetails));
@@ -110,7 +112,8 @@ export async function main(ns) {
                 "Hack Level": serverInfo.requiredHackingSkill,
                 "RAM": `${serverInfo.maxRam}GB`,
                 "Root": serverInfo.hasAdminRights ? "Yes" : "No",
-                "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No"
+                "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No",
+                "Time to Attack": `${(ns.getWeakenTime(server) / 1000).toFixed(1)}s`,
             };
         }).sort((a, b) => a["Hack Level"] - b["Hack Level"]);
 
