@@ -1,5 +1,5 @@
 import { getAllServers, getRunningAttacks } from "./utils/server.js";
-import { listView } from "./utils/console.js";
+import { listView, formatMoney } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -15,7 +15,7 @@ export async function main(ns) {
             Target: target,
             Threads: info.threads,
             Servers: Array.from(info.servers).join(", "),
-            Money: `${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(ns.getServerMaxMoney(target))}`,
+            Money: `${formatMoney(ns, ns.getServerMoneyAvailable(target))} / ${formatMoney(ns, ns.getServerMaxMoney(target))}`,
             Security: `${ns.getServerSecurityLevel(target).toFixed(2)} / ${ns.getServerMinSecurityLevel(target).toFixed(2)}`
         };
     });

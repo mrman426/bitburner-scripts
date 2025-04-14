@@ -1,5 +1,5 @@
 import { getAvailableRam } from "./utils/server.js";
-import { listView } from "./utils/console.js";
+import { formatRam, formatMoney, listView } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -16,9 +16,9 @@ export async function main(ns) {
             const maxRam = ns.getServerMaxRam(server);
             return {
                 "Server Name": server,
-                "RAM": `${maxRam}GB`,
-                "Free RAM": `${getAvailableRam(ns, server).toFixed(2)}GB`,
-                "Cost": `$${ns.formatNumber(ns.getPurchasedServerCost(maxRam))}`
+                "RAM": `${formatRam(ns, maxRam)}`,
+                "Free RAM": `${formatRam(ns, getAvailableRam(ns, server))}`,
+                "Cost": `${formatMoney(ns, ns.getPurchasedServerCost(maxRam))}`
             };
         });
     

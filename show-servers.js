@@ -1,5 +1,5 @@
 import { getAllServers, findPathToServer, calculateRequiredThreads, getRunningAttacks } from "./utils/server.js";
-import { listView, detailView } from "./utils/console.js";
+import { listView, detailView, formatRam, formatMoney, formatDelay, formatNumber } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -22,9 +22,9 @@ export async function main(ns) {
         const serverDetails = {
             "Server": "home",
             "Security": serverInfo.hackDifficulty.toFixed(2),
-            "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
+            "Max Money": formatMoney(ns, serverInfo.moneyMax),
             "Hack Level": serverInfo.requiredHackingSkill,
-            "RAM": `${serverInfo.maxRam}GB`,
+            "RAM": formatRam(ns, serverInfo.maxRam),
             "Root": serverInfo.hasAdminRights ? "Yes" : "No",
             "Attacking": attacks.has("home") ? `${attacks.get("home").threads} threads` : "No"
         };
@@ -44,9 +44,9 @@ export async function main(ns) {
             return {
                 "Server": server,
                 "Security": serverInfo.hackDifficulty.toFixed(2),
-                "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
+                "Max Money": formatMoney(ns, serverInfo.moneyMax),
                 "Hack Level": serverInfo.requiredHackingSkill,
-                "RAM": `${serverInfo.maxRam}GB`,
+                "RAM": formatRam(ns, serverInfo.maxRam),
                 "Root": serverInfo.hasAdminRights ? "Yes" : "No",
                 "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No"
             };
@@ -81,19 +81,20 @@ export async function main(ns) {
             hack: calculateRequiredThreads(ns, server, 'hack')
         };
         const totalThreads = threads.weaken + threads.grow + threads.hack;
+        const attackTime = ns.getWeakenTime(server);
 
         // Calculate server details
         const serverDetails = {
             "Server": server,
             "Path": path,
-            "Security": serverInfo.hackDifficulty.toFixed(2),
-            "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
+            Money: `${formatMoney(ns, ns.getServerMoneyAvailable(server))} / ${formatMoney(ns, ns.getServerMaxMoney(server))}`,
+            Security: `${ns.getServerSecurityLevel(server).toFixed(2)} / ${ns.getServerMinSecurityLevel(server).toFixed(2)}`,
             "Hack Level": serverInfo.requiredHackingSkill,
-            "RAM": `${serverInfo.maxRam}GB`,
+            "RAM": formatRam(ns, serverInfo.maxRam),
             "Root": serverInfo.hasAdminRights ? "Yes" : "No",
             "Threads Required (W+G+H=T)": `${threads.weaken}+${threads.grow}+${threads.hack}=${totalThreads}`,
             "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No",
-            "Time to Attack": `${(ns.getWeakenTime(server) / 1000).toFixed(1)}s`,
+            "Time to Attack": formatDelay(ns, attackTime) + " (" + Math.round(attackTime/1000) + "s)",
         };
         
         ns.tprint("\n=== Server Details ===\n" + detailView(serverDetails));
@@ -104,16 +105,17 @@ export async function main(ns) {
     const serverData = servers
         .filter(server => server !== "home" && !server.startsWith("pserv-"))
         .map(server => {
+            const attackTime = ns.getWeakenTime(server);
             const serverInfo = ns.getServer(server);
             return {
                 "Server": server,
-                "Security": serverInfo.hackDifficulty.toFixed(2),
-                "Max Money": `$${ns.formatNumber(serverInfo.moneyMax)}`,
+                Money: `${formatMoney(ns, ns.getServerMoneyAvailable(server))} / ${formatMoney(ns, ns.getServerMaxMoney(server))}`,
+                Security: `${ns.getServerSecurityLevel(server).toFixed(2)} / ${ns.getServerMinSecurityLevel(server).toFixed(2)}`,
                 "Hack Level": serverInfo.requiredHackingSkill,
-                "RAM": `${serverInfo.maxRam}GB`,
+                "RAM": formatRam(ns, serverInfo.maxRam),
                 "Root": serverInfo.hasAdminRights ? "Yes" : "No",
                 "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No",
-                "Time to Attack": `${(ns.getWeakenTime(server) / 1000).toFixed(1)}s`,
+                "Time to Attack": formatDelay(ns, attackTime) + " (" + Math.round(attackTime/1000) + "s)",
             };
         }).sort((a, b) => a["Hack Level"] - b["Hack Level"]);
 

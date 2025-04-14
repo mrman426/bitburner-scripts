@@ -7,15 +7,26 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return ["--verbose", "--loop"];
+    return ["--verbose", "--loop", "--max-ram"];
 }
 
 /** @param {NS} ns */
 export async function main(ns) {
     ns.disableLog("ALL");
-    
+
+    const sleepTime = 30000;
     const verbose = ns.args.includes("--verbose");
     const loop = ns.args.includes("--loop");
+
+    // Parse --max-ram argument (default to 80% if not provided)
+    const maxRamToShareArg = ns.args.find(arg => arg.startsWith("--max-ram="));
+    const maxRamToShare = maxRamToShareArg ? parseFloat(maxRamToShareArg.split("=")[1]) / 100 : 0.8;
+
+    if (isNaN(maxRamToShare) || maxRamToShare <= 0 || maxRamToShare > 1) {
+        ns.tprint("ERROR: Invalid value for --max-ram. Please provide a percentage between 1 and 100.");
+        return;
+    }
+
     const scriptRam = ns.getScriptRam("share.js");
     
     // Get all deployable servers and sort them by max RAM (ascending)
@@ -25,6 +36,7 @@ export async function main(ns) {
     
     log(ns, "\n=== RAM Sharing Setup ===", verbose);
     log(ns, `Found ${deployServers.length} deployable servers`, verbose);
+    log(ns, `Max RAM to share: ${(maxRamToShare * 100).toFixed(2)}%`, verbose);
     
     // Copy the share script to all servers
     for (const server of deployServers) {
@@ -32,61 +44,51 @@ export async function main(ns) {
     }
     
     do {
-        let totalAvailableRam = 0;
+        // Calculate total RAM stats
         let totalMaxRam = 0;
         let totalUsedRam = 0;
 
-        // Calculate total RAM stats
         for (const server of deployServers) {
-            const maxRam = ns.getServerMaxRam(server);
-            const usedRam = ns.getServerUsedRam(server);
-            const availableRam = maxRam - usedRam;
-
-            totalMaxRam += maxRam;
-            totalUsedRam += usedRam;
-            totalAvailableRam += availableRam;
+            totalMaxRam += ns.getServerMaxRam(server);
+            totalUsedRam += ns.getServerUsedRam(server);
         }
 
-        log(ns, `\n=== RAM Sharing Status ===`, verbose);
-        log(ns, `Total Max RAM: ${totalMaxRam}GB`, verbose);
-        log(ns, `Total Used RAM: ${totalUsedRam.toFixed(2)}GB`, verbose);
-        log(ns, `Total Usage: ${(totalUsedRam / totalMaxRam * 100).toFixed(2)}%`, verbose);
+        log(ns, `Total RAM: [max: ${totalMaxRam}GB] [used: ${totalUsedRam.toFixed(2)}GB] [usage: ${(totalUsedRam / totalMaxRam * 100).toFixed(2)}%]`, verbose);
 
-        if (totalUsedRam / totalMaxRam > 0.8) {
-            log(ns, "RAM usage is above 80%. Waiting 30 seconds....", verbose);
-            await ns.sleep(30000);
+        if (totalUsedRam / totalMaxRam > maxRamToShare) {
+            log(ns, `RAM usage is above ${(maxRamToShare * 100).toFixed(2)}%. Waiting ${sleepTime / 1000} seconds....`, verbose);
+            await ns.sleep(sleepTime);
             continue;
         }
 
-        let totalThreads = 0;
+        // Calculate and deploy threads
+        let threadsDeployed = 0;
+        let threadsToDeploy = Math.floor((totalMaxRam * maxRamToShare - totalUsedRam) / scriptRam); // maxRamToShare of max RAM minus used RAM
 
         for (const server of deployServers) {
-            const maxRam = ns.getServerMaxRam(server);
-            const usedRam = ns.getServerUsedRam(server);
-            const availableRam = maxRam - usedRam;
+            const availableRam = ns.getServerMaxRam(server) - ns.getServerUsedRam(server);
+            const threads = Math.min(Math.floor(availableRam / scriptRam), threadsToDeploy);
 
-            // Calculate the maximum threads that can be deployed without exceeding 80% RAM usage
-            const maxAllowedRam = maxRam * 0.8; // 80% of max RAM
-            const remainingAllowedRam = maxAllowedRam - usedRam;
+            if (threads <= 0) {
+                continue;
+            }
 
-            // Use the smaller value between available RAM and remaining allowed RAM
-            const deployableRam = Math.min(availableRam, remainingAllowedRam);
-            const threads = Math.floor(deployableRam / scriptRam);
+            threadsToDeploy -= threads;
+            threadsDeployed += threads;
 
-            if (threads > 0) {
-                totalThreads += threads;
-                log(ns, `${server}: [RAM: ${usedRam.toFixed(2)}GB / ${maxRam}GB used] [Running ${threads} share threads]`, verbose);
-                ns.exec("share.js", server, threads);
+            //log(ns, `${server}: [deployed ${threads} share threads]`, verbose);
+            ns.exec("share.js", server, threads);
+
+            if (threadsToDeploy <= 0) {
+                break;
             }
         }
 
-        log(ns, `\n=== Summary ===`, verbose);
-        log(ns, `Total Servers: ${deployServers.length}`, verbose);
-        log(ns, `Total Threads Allocated: ${totalThreads}`, verbose);
+        log(ns, `Total Threads Allocated: ${threadsDeployed}`, verbose);
 
         if (loop) {
             log(ns, "\nChecking again in 30 seconds...", verbose);
-            await ns.sleep(30000);
+            await ns.sleep(sleepTime);
         }
     } while (loop);
 }

@@ -147,3 +147,107 @@ function formatProperty(property) {
     }
     return ''
 }
+
+/**
+ * Format Number as string
+ *
+ * @param {NS} ns
+ * @param number
+ * @returns {string}
+ */
+export function formatNumber(ns, number) {
+    return ns.nFormat(number, '0.0a')
+}
+
+/**
+ * Format Money as string
+ *
+ * @param {NS} ns
+ * @param money
+ * @returns {string}
+ */
+export function formatMoney(ns, money) {
+    return ns.nFormat(money, '$0.0a')
+}
+
+/**
+ * Format RAM as string
+ *
+ * @param {NS} ns
+ * @param gb
+ * @returns {string}
+ */
+export function formatRam(ns, gb) {
+    return ns.nFormat(gb * 1000 * 1000 * 1000, '0.0b')
+}
+
+/**
+ * Format Percentage as string
+ *
+ * @param {NS} ns
+ * @param {number} percent
+ * @returns {string}
+ */
+export function formatPercent(ns, percent) {
+    return ns.nFormat(percent, '0%')
+}
+
+/**
+ * Format a delay and end time
+ *
+ * @param {NS} ns
+ * @param delay time to delay the command in milliseconds
+ * @param time time to run the command in milliseconds
+ * @returns {string}
+ */
+export function formatDelays(ns, delay, time) {
+    return formatDelay(ns, delay) + ' - ' + formatDelay(ns, delay + time)
+}
+
+/**
+ * Format a delay in MM:SS
+ * Allows negative times (nsFormat didn't work)
+ *
+ * @param {NS} ns
+ * @param value time in milliseconds
+ * @returns {string}
+ */
+export function formatDelay(ns, value) {
+    value = value / 1000
+    const hours = Math.floor(Math.abs(value) / 60 / 60),
+        minutes = Math.floor((Math.abs(value) - (hours * 60 * 60)) / 60),
+        seconds = Math.floor(Math.abs(value) - (hours * 60 * 60) - (minutes * 60)),
+        milliseconds = Math.round(Math.abs(value * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000) - (seconds * 1000))
+    return (value < 0 ? '-' : '')
+        + (hours ? hours + ':' : '')
+        + minutes
+        + ':' + seconds.toString().padStart(2, '0')
+        + '.'
+        + milliseconds.toString().padStart(4, '0')
+}
+
+/**
+ * Format a delay and end time
+ *
+ * @param {NS} ns
+ * @param delay time in milliseconds
+ * @param end time in milliseconds
+ * @returns {string}
+ */
+export function formatTimes(ns, delay, end) {
+    return this.formatTime(ns, delay) + '-' + this.formatTime(ns, end)
+}
+
+/**
+ * Format a locale time in HH:MM:SS
+ *
+ * @param {NS} ns
+ * @param value time in milliseconds
+ * @returns {string}
+ */
+export function formatTime(ns, value = 0) {
+    if (!value) {
+        value = new Date().getTime()
+    }
+    return new Date(value).toLocaleTimeString()
+}

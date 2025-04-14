@@ -1,5 +1,5 @@
 import { getAllServers, getRunningShares } from "./utils/server.js";
-import { listView } from "./utils/console.js";
+import { listView, formatNumber } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -14,7 +14,7 @@ export async function main(ns) {
         .map(([target, info]) => {
             return {
                 Target: target,
-                Threads: info.threads,
+                Threads: formatNumber(ns, info.threads),
             };
         })
         .sort((a, b) => b.Threads - a.Threads);

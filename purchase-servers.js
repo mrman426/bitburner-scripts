@@ -18,7 +18,7 @@ export async function main(ns) {
     const minRam = 64; // Mimum RAM to buy
     const maxServers = 25; // Maximum number of servers you can own
     const serverPrefix = "pserv-"; // Prefix for purchased servers
-    const sleepTime = 60000; // Sleep for 1 minute between checks
+    const sleepTime = 30000; // Sleep for 30 seconds between checks
     const maxGameRam = 1048576; // Maximum RAM allowed in the game
 
     do {
@@ -71,25 +71,6 @@ export async function main(ns) {
             continue;
         }
 
-        // If maxAffordableRam reaches the game limit, buy one server immediately
-        if (maxAffordableRam === maxGameRam) {
-            log(ns, `INFO: Maximum RAM (${maxGameRam}GB) reached. Buying one server immediately.`, verbose);
-
-            // Find the next available server number
-            let nextServerNum = 0;
-            while (existingServers.includes(serverPrefix + nextServerNum)) {
-                nextServerNum++;
-            }
-
-            const serverName = serverPrefix + nextServerNum;
-            ns.purchaseServer(serverName, maxGameRam);
-            log(ns, `Purchased server: ${serverName} with ${maxGameRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, verbose);
-
-            // Sleep before next iteration
-            await ns.sleep(sleepTime);
-            continue;
-        }
-
         if (availableSlots <= 0) {
             // Find the server with the least RAM (only considering servers with our prefix)
             let worstServer = null;
@@ -128,6 +109,25 @@ export async function main(ns) {
             }
         }
 
+        // If maxAffordableRam reaches the game limit, buy one server immediately
+        if (maxAffordableRam === maxGameRam) {
+            log(ns, `INFO: Maximum RAM (${maxGameRam}GB) reached. Buying one server immediately.`, verbose);
+
+            // Find the next available server number
+            let nextServerNum = 0;
+            while (existingServers.includes(serverPrefix + nextServerNum)) {
+                nextServerNum++;
+            }
+
+            const serverName = serverPrefix + nextServerNum;
+            ns.purchaseServer(serverName, maxGameRam);
+            log(ns, `Purchased server: ${serverName} with ${maxGameRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, verbose);
+
+            // Short sleep before next iteration
+            await ns.sleep(sleepTime);
+            continue;
+        }
+        
         // Calculate how many servers we can actually buy (limited by slots and money)
         const serversToBuy = Math.min(Math.floor(money / maxAffordableCost), maxServers - existingServers.length);
         const totalCost = serversToBuy * maxAffordableCost;
