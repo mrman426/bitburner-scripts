@@ -29,21 +29,21 @@ export async function main(ns) {
 
     const scriptRam = ns.getScriptRam("share.js");
     
-    // Get all deployable servers and sort them by max RAM (ascending)
-    const deployServers = getDeployableServers(ns, "", true, false)
-        .filter(server => server !== "home")
-        .sort((a, b) => ns.getServerMaxRam(a) - ns.getServerMaxRam(b));
-    
-    log(ns, "\n=== RAM Sharing Setup ===", verbose);
-    log(ns, `Found ${deployServers.length} deployable servers`, verbose);
-    log(ns, `Max RAM to share: ${(maxRamToShare * 100).toFixed(2)}%`, verbose);
-    
-    // Copy the share script to all servers
-    for (const server of deployServers) {
-        await ns.scp("share.js", server);
-    }
-    
     do {
+        // Get all deployable servers and sort them by max RAM (ascending)
+        const deployServers = getDeployableServers(ns, "", true, false)
+            .filter(server => server !== "home")
+            .sort((a, b) => ns.getServerMaxRam(a) - ns.getServerMaxRam(b));
+
+        log(ns, "\n=== RAM Sharing Setup ===", verbose);
+        log(ns, `Found ${deployServers.length} deployable servers`, verbose);
+        log(ns, `Max RAM to share: ${(maxRamToShare * 100).toFixed(2)}%`, verbose);
+
+        // Copy the share script to all servers
+        for (const server of deployServers) {
+            await ns.scp("share.js", server);
+        }
+
         // Calculate total RAM stats
         let totalMaxRam = 0;
         let totalUsedRam = 0;

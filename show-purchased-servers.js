@@ -35,10 +35,7 @@ export async function main(ns) {
         });
 
     const totals = {
-        "Total RAM": formatRam(ns, totalMaxRam),
-        "Total Used RAM": formatRam(ns, totalUsedRam),
-        "Total Free RAM": formatRam(ns, totalMaxRam - totalUsedRam),
-        "Total RAM Usage": formatPercent(ns, totalUsedRam / totalMaxRam),
+        "Total RAM": `${formatRam(ns, totalMaxRam)} [used: ${formatRam(ns, totalUsedRam)}] [free: ${formatRam(ns, totalMaxRam - totalUsedRam)}] [usage: ${formatPercent(ns, totalUsedRam / totalMaxRam)}]`,
         "Total Cost": formatMoney(ns, totalCost)
     };
 

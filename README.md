@@ -48,10 +48,10 @@ run deploy-attack.js n00dles --hacked-only --loop
 
 ### Attack Phase 2
 
-When you can attack a bigger target while you build up RAM
+You can attack a bigger target while you build up RAM
 
 ```sh
-run deploy-wgh.js --loop
+run deploy-wgh.js --purchased-only --loop
 ```
 
 ### Attack Phase 3
