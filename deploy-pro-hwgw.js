@@ -133,8 +133,9 @@ export async function main(ns) {
         await ns.sleep(2000);
 
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
-            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Exiting...", verbose);
-            break;
+            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Waiting 30 seconds before retrying...", verbose);
+            await ns.sleep(30000);
+            continue;
         }
     } while (loop);
 } 
