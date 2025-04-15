@@ -67,10 +67,10 @@ run deploy-pro-hwgw.js silver-helix --verbose-hacked --loop
 backdoor these servers
 
 ```sh
-run show-servers.js CSEC
-run show-servers.js avmnite-02h
-run show-servers.js I.I.I.I
-run show-servers.js run4theh111z
+run show-servers.js CSEC;
+run show-servers.js avmnite-02h;
+run show-servers.js I.I.I.I;
+run show-servers.js run4theh111z;
 ```
 
 To share memory with your faction
