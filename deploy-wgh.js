@@ -1,4 +1,4 @@
-import { getAllServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningAttacks, hackServer } from "./utils/server.js";
+import { getAllServers, getDeployServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningAttacks, hackServer } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -72,29 +72,11 @@ export async function main(ns) {
         log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}] [Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s]`, verbose);
         log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`, verbose);
         
-        // Get deployable servers
-        const deployServers = allServers
-            .filter(server => {
-                if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
-                if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
-                return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
-            })
-            .sort((a, b) => {
-                const ramA = getServerAvailableRam(ns, a);
-                const ramB = getServerAvailableRam(ns, b);
-                return ramB - ramA;
-            });
-
         // Distribute threads across available servers
         let remainingThreads = { ...requiredThreads };
         let totalDeployed = { hack: 0, grow: 0, weaken: 0 };
         
-        for (const server of deployServers) {
-            // Try to nuke the server
-            if (!ns.hasRootAccess(server) && !hackServer(ns, server)) {
-                return;
-            }
-    
+        for (const server of getDeployServers(ns, true, usePurchasedServersOnly, useHackedServersOnly)) {
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
             

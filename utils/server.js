@@ -5,10 +5,15 @@ export function getAllServers(ns) {
     
     while (toScan.length > 0) {
         const server = toScan.pop();
-        if (servers.has(server)) continue;
+
+        if (servers.has(server)) {
+            continue;
+        }
+
         servers.add(server);
         
         const connected = ns.scan(server);
+
         for (const s of connected) {
             if (!servers.has(s)) {
                 toScan.push(s);
@@ -17,6 +22,31 @@ export function getAllServers(ns) {
     }
     
     return Array.from(servers);
+}
+
+/**
+ * Get a list of all servers that can be deployed to
+ * @param {NS} ns
+ * @param {boolean} useHome
+ * @param {boolean} usePurchasedServersOnly
+ * @param {boolean} useHackedServersOnly
+ * @returns 
+ */
+export function getDeployServers(ns, useHome = true, usePurchasedServersOnly = false, useHackedServersOnly = false) {
+    return getAllServers(ns)
+        .filter(server => {
+            if (server === "home") return useHome;
+            if (usePurchasedServersOnly && !server.startsWith("pserv-")) return false;
+            if (useHackedServersOnly && server.startsWith("pserv-")) return false;
+            if (ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel()) return false;
+
+            return ns.hasRootAccess(server) || hackServer(ns, server);
+        })
+        .sort((a, b) => {
+            const ramA = getServerAvailableRam(ns, a);
+            const ramB = getServerAvailableRam(ns, b);
+            return ramB - ramA;
+        });
 }
 
 /**
@@ -36,34 +66,6 @@ export function findPathToServer(ns, targetServer) {
     path.unshift("home");
     
     return path;
-}
-
-/** @param {NS} ns */
-export function getDeployableServers(ns, targetServer, useAllServers = false, usePurchasedOnly = false) {
-    const allServers = getAllServers(ns);
-    
-    return allServers.filter(server => {
-        // Skip servers with no RAM
-        if (ns.getServerMaxRam(server) === 0) return false;
-
-        // Skip servers that do not have root access
-        if (!ns.hasRootAccess(server)) return false;
-
-        // Skip target server
-        if (server === targetServer) return false;
-        
-        // Skip home server
-        if (server === "home") return true;
-        
-        // If using purchased servers only, only include servers that start with "pserv-"
-        if (usePurchasedOnly && !server.startsWith("pserv-")) return false;
-        
-        // If using all servers, include everything that passes above checks
-        if (useAllServers) return true;
-        
-        // Default to purchased servers only (servers that start with "pserv-")
-        return server.startsWith("pserv-");
-    });
 }
 
 /** @param {NS} ns */
@@ -113,7 +115,6 @@ export async function hackServer(ns, server) {
         ns.tprint(`Gained root access on ${server}`);
         return true;
     } else {
-        //ns.tprint(`Failed to gain root access on ${server}`);
         return false;
     }
 }

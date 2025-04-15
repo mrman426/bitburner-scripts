@@ -1,4 +1,4 @@
-import { getDeployableServers, getAvailableRam } from "./utils/server.js";
+import { getDeployServers } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -7,7 +7,7 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return ["--verbose", "--loop", "--max-ram"];
+    return ["--purchased-only", "--hacked-only", "--verbose", "--loop", "--max-ram"];
 }
 
 /** @param {NS} ns */
@@ -17,6 +17,8 @@ export async function main(ns) {
     const sleepTime = 30000;
     const verbose = ns.args.includes("--verbose");
     const loop = ns.args.includes("--loop");
+    const usePurchasedServersOnly = ns.args.includes("--purchased-only");
+    const useHackedServersOnly = ns.args.includes("--hacked-only");
 
     // Parse --max-ram argument (default to 80% if not provided)
     const maxRamToShareArg = ns.args.find(arg => arg.startsWith("--max-ram="));
@@ -30,19 +32,11 @@ export async function main(ns) {
     const scriptRam = ns.getScriptRam("share.js");
     
     do {
-        // Get all deployable servers and sort them by max RAM (ascending)
-        const deployServers = getDeployableServers(ns, "", true, false)
-            .filter(server => server !== "home")
-            .sort((a, b) => ns.getServerMaxRam(a) - ns.getServerMaxRam(b));
+        const deployServers = getDeployServers(ns, false, usePurchasedServersOnly, useHackedServersOnly);
 
         log(ns, "\n=== RAM Sharing Setup ===", verbose);
         log(ns, `Found ${deployServers.length} deployable servers`, verbose);
         log(ns, `Max RAM to share: ${(maxRamToShare * 100).toFixed(2)}%`, verbose);
-
-        // Copy the share script to all servers
-        for (const server of deployServers) {
-            await ns.scp("share.js", server);
-        }
 
         // Calculate total RAM stats
         let totalMaxRam = 0;
@@ -76,7 +70,7 @@ export async function main(ns) {
             threadsToDeploy -= threads;
             threadsDeployed += threads;
 
-            //log(ns, `${server}: [deployed ${threads} share threads]`, verbose);
+            await ns.scp("share.js", server);
             ns.exec("share.js", server, threads);
 
             if (threadsToDeploy <= 0) {

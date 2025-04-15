@@ -1,4 +1,4 @@
-import { getAllServers, getServerAvailableRam, calculateAttackThreads, hackServer } from "./utils/server.js";
+import { getAllServers, getDeployServers, getServerAvailableRam, calculateAttackThreads, hackServer } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -54,29 +54,11 @@ export async function main(ns) {
     //const attackTimes = Math.floor(weakenTime * 0.9 / 1000);
     //for (let i=0; i < attackTimes; i++) {
     do {
-        // Get deployable servers
-        const deployServers = getAllServers(ns)
-            .filter(server => {
-                if (usePurchasedServersOnly && !server.startsWith("pserv-") && server !== "home") return false;
-                if (useHackedServersOnly && (server.startsWith("pserv-") || server === "home")) return false;
-                return ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel();
-            })
-            .sort((a, b) => {
-                const ramA = getServerAvailableRam(ns, a);
-                const ramB = getServerAvailableRam(ns, b);
-                return ramB - ramA;
-            });
-
         // Distribute threads across available servers
         let remainingThreads = { ...requiredThreads };
         let totalDeployed = { hack: 0, grow: 0, growWeaken: 0, weaken: 0 };
         
-        for (const server of deployServers) {
-            // Try to nuke the server
-            if (!ns.hasRootAccess(server) && !hackServer(ns, server)) {
-                return;
-            }
-    
+        for (const server of getDeployServers(ns, true, usePurchasedServersOnly, useHackedServersOnly)) {
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
             

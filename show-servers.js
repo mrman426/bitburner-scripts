@@ -57,7 +57,7 @@ export async function main(ns) {
 
     if (target) {
         const matches = servers.filter(server => 
-            server.toLowerCase().includes(target.toLowerCase())
+            server.toLowerCase() === target.toLowerCase()
         );
 
         if (matches.length === 0) {
@@ -65,13 +65,7 @@ export async function main(ns) {
             return;
         }
 
-        if (matches.length > 1) {
-            const serverList = matches.map(server => ({ Server: server }));
-            ns.tprint("\n=== Matching Servers ===\n" + listView(serverList));
-            return;
-        }
-
-        // If we have exactly one match, proceed with showing its details
+        // If we have a match, proceed with showing its details
         const server = matches[0];
         const serverInfo = ns.getServer(server);
         const path = findPathToServer(ns, server).join("; connect ") + "; backdoor";
