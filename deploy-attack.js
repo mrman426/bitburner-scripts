@@ -59,7 +59,8 @@ export async function main(ns) {
             }
         }
         
-        log(ns, "Deployment complete!", verbose);
-        await ns.sleep(1000);
+        if (loop) {
+            await ns.sleep(500);
+        }
     } while (loop);
 } 
