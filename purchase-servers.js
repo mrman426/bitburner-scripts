@@ -18,7 +18,7 @@ export async function main(ns) {
     const minRam = 64; // Mimum RAM to buy
     const maxServers = 25; // Maximum number of servers you can own
     const serverPrefix = "pserv-"; // Prefix for purchased servers
-    const sleepTime = 30000; // Sleep for 30 seconds between checks
+    const sleepTime = 10000; // Sleep for 10 seconds between checks
     const maxGameRam = 1048576; // Maximum RAM allowed in the game
 
     do {
