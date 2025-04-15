@@ -19,7 +19,7 @@ buy -a
 Also purchase servers for more RAM
 
 ```sh
-run purchase-servers.js --loop --verbose
+run purchase-servers.js --loop
 ```
 
 You can see the purchased servers with
@@ -51,7 +51,7 @@ run deploy-attack.js n00dles --hacked-only --loop
 When you can attack a bigger target while you build up RAM
 
 ```sh
-run deploy-wgh.js --loop --verbose
+run deploy-wgh.js --loop
 ```
 
 ### Attack Phase 3
