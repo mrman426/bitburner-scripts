@@ -143,7 +143,7 @@ export async function main(ns) {
         }
 
         if (loop) {
-            await ns.sleep(1000);
+            await ns.sleep(500);
         }
     } while (loop);
 } 
