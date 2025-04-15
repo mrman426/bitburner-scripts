@@ -74,7 +74,7 @@ export async function main(ns) {
         // If we have exactly one match, proceed with showing its details
         const server = matches[0];
         const serverInfo = ns.getServer(server);
-        const path = findPathToServer(ns, server).join("; connect ");
+        const path = findPathToServer(ns, server).join("; connect ") + "; backdoor";
         const threads = {
             weaken: calculateRequiredThreads(ns, server, 'weaken'),
             grow: calculateRequiredThreads(ns, server, 'grow'),
