@@ -38,7 +38,6 @@ export function getDeployServers(ns, useHome = true, usePurchasedServersOnly = f
             if (server === "home") return useHome;
             if (usePurchasedServersOnly && !server.startsWith("pserv-")) return false;
             if (useHackedServersOnly && server.startsWith("pserv-")) return false;
-            if (ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel()) return false;
 
             return ns.hasRootAccess(server) || hackServer(ns, server);
         })
@@ -103,9 +102,10 @@ export function openPorts(ns, server) {
 }
 
 /** @param {NS} ns */
-export async function hackServer(ns, server) {
-    if (server === "home") return false;
+export function hackServer(ns, server) {
+    if (server === "home") return true;
     if (ns.hasRootAccess(server)) return true;
+    if (ns.getServerRequiredHackingLevel(server) > ns.getHackingLevel()) return false;
 
     const requiredPorts = ns.getServerNumPortsRequired(server);
     const portsOpened = openPorts(ns, server);
