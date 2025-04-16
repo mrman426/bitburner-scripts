@@ -4,6 +4,8 @@
  * @param string message
  */
 export function log(ns, message, verbose = false) {
+    message = formatTime(ns) + ': ' + message
+
     if (verbose) {
         ns.tprint(message);
     }
