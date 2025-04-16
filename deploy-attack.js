@@ -26,7 +26,7 @@ export async function main(ns) {
     const scriptRam = ns.getScriptRam("attack.js");
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
-    const maxThreads = 100;
+    const maxThreads = 150;
 
     do {
         let totalThreads = 0;
@@ -34,7 +34,9 @@ export async function main(ns) {
         // Get currently running threads on all servers
         const allServers = getAllServers(ns);
         const deployServers = getDeployServers(ns, allServers, false, usePurchasedServersOnly, useHackedServersOnly)
-        const runningPrograms = getRunningPrograms(ns, allServers);
+            .sort((a, b) => { return getServerAvailableRam(ns, a) - getServerAvailableRam(ns, b); });
+
+        const runningPrograms = getRunningPrograms(ns, allServers, ["attack.js"]);
         const runningThreads = runningPrograms.get(target)?.threads || 0;
 
         totalThreads += runningThreads;
