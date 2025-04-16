@@ -31,6 +31,7 @@ export async function main(ns) {
     
     do {
         const allServers = getAllServers(ns);
+        const deployServers = getDeployServers(ns, allServers, true, usePurchasedServersOnly, useHackedServersOnly);
 
         // Get all servers that could be potential targets
         const potentialTargets = allServers.filter(server => {
@@ -75,8 +76,8 @@ export async function main(ns) {
         // Distribute threads across available servers
         let remainingThreads = { ...requiredThreads };
         let totalDeployed = { hack: 0, grow: 0, weaken: 0 };
-        
-        for (const server of getDeployServers(ns, true, usePurchasedServersOnly, useHackedServersOnly)) {
+
+        for (const server of deployServers) {
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
 

@@ -54,11 +54,14 @@ export async function main(ns) {
     //const attackTimes = Math.floor(weakenTime * 0.9 / 1000);
     //for (let i=0; i < attackTimes; i++) {
     do {
+        const allServers = getAllServers(ns);
+        const deployServers = getDeployServers(ns, allServers, true, usePurchasedServersOnly, useHackedServersOnly)
+
         // Distribute threads across available servers
         let remainingThreads = { ...requiredThreads };
         let totalDeployed = { hack: 0, grow: 0, growWeaken: 0, weaken: 0 };
-        
-        for (const server of getDeployServers(ns, true, usePurchasedServersOnly, useHackedServersOnly)) {
+    
+        for (const server of deployServers) {
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
             

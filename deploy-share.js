@@ -1,4 +1,4 @@
-import { getDeployServers } from "./utils/server.js";
+import { getAllServers, getDeployServers } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -30,9 +30,10 @@ export async function main(ns) {
     }
 
     const scriptRam = ns.getScriptRam("share.js");
-    
+
     do {
-        const deployServers = getDeployServers(ns, false, usePurchasedServersOnly, useHackedServersOnly);
+        const allServers = getAllServers(ns);
+        const deployServers = getDeployServers(ns, allServers, false, usePurchasedServersOnly, useHackedServersOnly);
 
         log(ns, "\n=== RAM Sharing Setup ===", verbose);
         log(ns, `Found ${deployServers.length} deployable servers`, verbose);

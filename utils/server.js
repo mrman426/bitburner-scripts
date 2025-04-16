@@ -1,4 +1,8 @@
-/** @param {NS} ns */
+/**
+ * Gets all servers in the network
+ * @param {NS} ns
+ * @returns {string[]} Array of server names
+ */
 export function getAllServers(ns) {
     const servers = new Set();
     const toScan = ["home"];
@@ -27,13 +31,14 @@ export function getAllServers(ns) {
 /**
  * Get a list of all servers that can be deployed to
  * @param {NS} ns
+ * @param {string[]} allServers
  * @param {boolean} useHome
  * @param {boolean} usePurchasedServersOnly
  * @param {boolean} useHackedServersOnly
- * @returns 
+ * @returns {string[]} Array of server names
  */
-export function getDeployServers(ns, useHome = true, usePurchasedServersOnly = false, useHackedServersOnly = false) {
-    return getAllServers(ns)
+export function getDeployServers(ns, allServers, useHome = true, usePurchasedServersOnly = false, useHackedServersOnly = false) {
+    return allServers
         .filter(server => {
             if (server === "home") return useHome;
             if (usePurchasedServersOnly && !server.startsWith("pserv-")) return false;
