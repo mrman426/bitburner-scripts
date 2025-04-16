@@ -44,7 +44,7 @@ export function getDeployServers(ns, allServers, useHome = true, usePurchasedSer
             if (usePurchasedServersOnly && !server.startsWith("pserv-")) return false;
             if (useHackedServersOnly && server.startsWith("pserv-")) return false;
 
-            return ns.hasRootAccess(server) || hackServer(ns, server);
+            return ns.hasRootAccess(server);
         })
         .sort((a, b) => {
             const ramA = getServerAvailableRam(ns, a);
@@ -275,7 +275,7 @@ export function getServerAvailableRam(ns, server) {
  * @param {number} hackFraction between 0 and 1
  * @return {Object}
  */
-export function calculateAttackThreads(ns, target, hackFraction) {
+export function calculateAttackThreads(ns, target, hackFraction = 0.25) {
     const percentStolenPerThread = ns.hackAnalyze(target); // percent of money stolen with a single thread
     if (percentStolenPerThread <= 0) {
         return {hack: 0, weaken: 0, grow: 0, growWeaken: 0};
@@ -335,14 +335,6 @@ export function calculateRequiredThreads(ns, target, operation) {
             const securityDiff = currentSecurity - minSecurity;
             const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
             return Math.ceil(weakenThreads);
-
-        case 'growWeaken':
-            return 0;
-            // if (currentSecurity <= minSecurity + 1) return 0;
-            // const securityDiff = currentSecurity - minSecurity;
-            // const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
-            // return Math.ceil(weakenThreads);
-        
     
         default:
             return 0;

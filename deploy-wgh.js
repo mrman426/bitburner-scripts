@@ -40,7 +40,7 @@ export async function main(ns) {
         });
 
         // Get running attacks to avoid targeting servers already being attacked
-        const runningAttacks = getRunningPrograms(ns, allServers, ["hack.js", "grow.js", "weaken.js"]);
+        const runningAttacks = getRunningPrograms(ns, allServers, ["attack.js", "hack.js", "grow.js", "weaken.js"]);
         
         // Get server scores and filter out servers under attack
         const serverScores = getServerScores(ns, potentialTargets)
