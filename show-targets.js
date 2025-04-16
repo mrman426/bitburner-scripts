@@ -1,11 +1,11 @@
-import { getAllServers, getRunningPrograms, calculateRequiredThreads, calculateAttackThreads } from "./utils/server.js";
+import { getAllServers, getTargetServers, getRunningPrograms, calculateRequiredThreads, calculateAttackThreads } from "./utils/server.js";
 import { listView, formatNumber } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
     const allServers = getAllServers(ns);
     const attacks = getRunningPrograms(ns, allServers, ["attack.js", "hack.js", "grow.js", "weaken.js"]);
-    const formattedData = allServers
+    const targets = getTargetServers(ns, allServers)
         .filter(server => {
             if (ns.getServerMaxRam(server) === 0) return false;
             if (!ns.hasRootAccess(server)) return false;
@@ -45,5 +45,5 @@ export async function main(ns) {
             };
         });
     
-    ns.tprint("=== Top Servers to Attack ===\n" + listView(formattedData));
+    ns.tprint("=== Top Servers to Attack ===\n" + listView(targets));
 } 

@@ -54,6 +54,26 @@ export function getDeployServers(ns, allServers, useHome = true, usePurchasedSer
 }
 
 /**
+ * Get a list of all servers that can be attacked
+ * @param {NS} ns
+ * @param {string[]} allServers
+ * @param {boolean} useHome
+ * @param {boolean} usePurchasedServersOnly
+ * @param {boolean} useHackedServersOnly
+ * @returns {string[]} Array of server names
+ */
+export function getTargetServers(ns, allServers) {
+    return allServers
+        .filter(server => {
+            if (ns.getServerMaxRam(server) === 0) return false;
+            if (!ns.hasRootAccess(server)) return false;
+            if (server.startsWith('pserv-') || server === "home") return false;
+            if (ns.getServerMaxMoney(server) <= 0) return false;
+            return true;
+        });
+}
+
+/**
  * Finds the path from home to the target server
  * @param {NS} ns
  * @param {string} targetServer

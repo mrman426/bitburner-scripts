@@ -1,4 +1,4 @@
-import { getAllServers, getDeployServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningPrograms, hackServer } from "./utils/server.js";
+import { getAllServers, getDeployServers, getServerAvailableRam, calculateRequiredThreads, getRunningPrograms, getTargetServers } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -43,17 +43,19 @@ export async function main(ns) {
         const runningAttacks = getRunningPrograms(ns, allServers, ["attack.js", "hack.js", "grow.js", "weaken.js"]);
         
         // Get server scores and filter out servers under attack
-        const serverScores = getServerScores(ns, potentialTargets)
-            .filter(server => !runningAttacks.has(server.server))
-            .sort((a, b) => b.score - a.score);
+        const targetServers = getTargetServers(ns, potentialTargets)
+            .filter(server => !runningAttacks.has(server))
+            .sort((a, b) => ns.getWeakenTime(a) - ns.getWeakenTime(b));
 
-        if (serverScores.length === 0) {
+        if (targetServers.length === 0) {
             log(ns, "WARNING: No suitable targets found. Waiting 10 seconds before retrying...", verbose);
             await ns.sleep(10000);
             continue;
         }
 
-        const target = serverScores[0].server;
+        const target = targetServers[0];
+        const attackTime = ns.getWeakenTime(target);
+        const maxMoney = ns.getServerMaxMoney(target);
 
         // Calculate required threads for each operation
         const requiredThreads = {
@@ -70,7 +72,7 @@ export async function main(ns) {
         const growWaitTime = Math.max(weakenTime, growTime) - growTime + 500;
         const hackWaitTime = Math.max(weakenTime, growTime, hackTime) - hackTime + 1500;
 
-        log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(serverScores[0].maxMoney)}] [Time to Attack: ${(serverScores[0].timeToAttack / 1000).toFixed(1)}s]`, verbose);
+        log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(maxMoney)}] [Time to Attack: ${(attackTime / 1000).toFixed(1)}s]`, verbose);
         log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`, verbose);
         
         // Distribute threads across available servers
