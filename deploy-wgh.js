@@ -79,7 +79,7 @@ export async function main(ns) {
         for (const server of getDeployServers(ns, true, usePurchasedServersOnly, useHackedServersOnly)) {
             const serverRam = getServerAvailableRam(ns, server);
             let remainingRam = serverRam;
-            
+
             // Deploy weaken first
             const weakenThreads = Math.min(remainingThreads.weaken, Math.floor(remainingRam / scriptRams.weaken));
             if (weakenThreads > 0) {
