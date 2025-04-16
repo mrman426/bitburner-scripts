@@ -55,7 +55,7 @@ export async function main(ns) {
     //for (let i=0; i < attackTimes; i++) {
     do {
         const allServers = getAllServers(ns);
-        const deployServers = getDeployServers(ns, allServers, true, usePurchasedServersOnly, useHackedServersOnly)
+        const deployServers = getDeployServers(ns, allServers, true, usePurchasedServersOnly, useHackedServersOnly);
 
         // Distribute threads across available servers
         let remainingThreads = { ...requiredThreads };
