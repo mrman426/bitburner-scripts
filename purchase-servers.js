@@ -136,10 +136,7 @@ export async function main(ns) {
         }
         
         // Calculate if we should purchase a server
-        const buyServer = money >= maxAffordableCost;
-        const totalCost = serversToBuy * maxAffordableCost;
-
-        if (buyServer) {
+        if (money >= maxAffordableCost) {
             // Find the next available server number
             let nextServerNum = 0;
             while (existingServers.includes(serverPrefix + nextServerNum)) {
@@ -148,7 +145,7 @@ export async function main(ns) {
             
             const serverName = serverPrefix + nextServerNum;
             ns.purchaseServer(serverName, maxAffordableRam);
-            log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(totalCost)}`, true);
+            log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, true);
         } else {
             log(ns, `Not enough money to purchase a server. Need $${ns.formatNumber(maxAffordableCost)} for ${maxAffordableRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
         }
