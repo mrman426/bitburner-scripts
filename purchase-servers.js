@@ -180,7 +180,7 @@ export async function main(ns) {
         
         const serverName = serverPrefix + nextServerNum;
         ns.purchaseServer(serverName, maxAffordableRam);
-        log(ns, `Purchased server: ${serverName} with ${formatRam(maxAffordableRam)} RAM for ${formatMoney(ns, maxAffordableCost)}`, true);
+        log(ns, `Purchased server: ${serverName} with ${formatRam(ns, maxAffordableRam)} RAM for ${formatMoney(ns, maxAffordableCost)}`, true);
         
         // Sleep before next iteration
         if (loop) {

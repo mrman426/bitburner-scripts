@@ -18,15 +18,13 @@ export async function main(ns) {
 
     const hostname = ns.getHostname();
     const target = ns.args[0];
-    const sleepTime = ns.args[1] || 0;
-    const verbose = ns.args[2] || false;
+    const verbose = ns.args[1] || false;
+    const verboseHacked = ns.args[2] || false;
 
     if (!target) {
         ns.tprint("ERROR: No target specified");
         return;
     }
-
-    await ns.sleep(sleepTime);
 
     // Get server information
     const maxMoney = ns.getServerMaxMoney(target);
@@ -65,7 +63,7 @@ export async function main(ns) {
             // Only hack if money is above minimum threshold
             ns.print(`INFO: Hacking...`);
             const stolen = await ns.hack(target);
-            if (verbose) {
+            if (verbose || verboseHacked) {
                 ns.tprint(`${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`);
             }
         }
