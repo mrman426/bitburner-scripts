@@ -108,8 +108,7 @@ export function openPorts(ns, server) {
 
 /** @param {NS} ns */
 export function hackServer(ns, server) {
-    if (server === "home") return true;
-    if (ns.hasRootAccess(server)) return true;
+    if (ns.hasRootAccess(server)) return false;
     if (ns.getServerRequiredHackingLevel(server) > ns.getHackingLevel()) return false;
 
     const requiredPorts = ns.getServerNumPortsRequired(server);
@@ -117,7 +116,6 @@ export function hackServer(ns, server) {
 
     if (portsOpened >= requiredPorts) {
         ns.nuke(server);
-        ns.tprint(`Gained root access on ${server}`);
         return true;
     } else {
         return false;
@@ -150,113 +148,6 @@ export function isServerHackable(ns, server, allServers) {
         && meetsHackLevel
         && !isBeingAttacked;
 }
-
-/**
- * Calculate a score for servers based on various metrics to determine its hack value
- * @param {NS} ns - Netscript API
- * @returns {object} Score values for the servers
- */
-export function getServerScores(ns, targetServers) {
-    // Analyze each server and calculate a score
-    return targetServers
-        .filter(server => {
-            // Skip servers with no RAM
-            if (ns.getServerMaxRam(server) === 0) return false;
-
-            // Skip servers that do not have root access
-            if (!ns.hasRootAccess(server)) return false;
-
-            // Skip purchased and home servers
-            if (server.startsWith('pserv-') || server === "home") return false;
-
-            if (ns.getServerMaxMoney(server) <= 0) return false;
-
-            return true;
-        })
-        .map(server => {
-            const availableMoney = ns.getServerMoneyAvailable(server);
-            const maxMoney = ns.getServerMaxMoney(server);
-            const security = ns.getServerSecurityLevel(server);
-            const minSecurity = ns.getServerMinSecurityLevel(server);
-            const timeToAttack = ns.getWeakenTime(server);
-            const hackPercent = 0.25; // Percent of money we want to hack
-            const moneyPerAttack = maxMoney * hackPercent
-
-            // Calculate required threads
-            const threads = calculateAttackThreads(ns, server, 0.25);
-            const totalThreads = threads.weaken + threads.grow + threads.growWeaken + threads.hack;
-
-            // Calculate a score based on:
-            // 1. Money available (higher is better)
-            // 2. Security level (lower is better)
-            // 3. Time to hack (lower is better)
-            const moneyScore = maxMoney / 1000000; // Normalize to millions
-            const securityScore = 1 / minSecurity;
-            const timeMultiplier = Math.pow(0.95, timeToAttack / 1000); // Exponential decay based on time
-            
-            // Final score calculation
-            const score = moneyScore * securityScore * timeMultiplier;
-            
-            return {
-                server,
-                score,
-                availableMoney,
-                maxMoney,
-                security,
-                minSecurity,
-                timeToAttack,
-                threads,
-                totalThreads,
-                moneyPerAttack,
-            };
-        });
-}
-
-/**
- * NOT USED, DO WE WANT ANY OF THE LOGIC FROM HERE?
- * Calculate a score for a server based on various metrics to determine its hack value
- * @param {NS} ns - Netscript API
- * @param {string} server - Server to score
- * @param {Object} scriptRams - Object containing RAM costs for different scripts
- * @returns {number} Score value for the server
- */
-export function getServerScore(ns, server, scriptRams) {
-    const maxMoney = ns.getServerMaxMoney(server);
-    const minSecurity = ns.getServerMinSecurityLevel(server);
-    const currentSecurity = ns.getServerSecurityLevel(server);
-    const totalTime = Math.max(ns.getGrowTime(server), ns.getWeakenTime(server)) + ns.getHackTime(server);
-    
-    // Heavily penalize longer hack times
-    const timeMultiplier = Math.pow(0.95, totalTime / 1000); // Exponential decay based on time
-    
-    // More weight on security level difference
-    const securityPenalty = Math.pow(currentSecurity / minSecurity, 2);
-    
-    const moneyPerSecond = (maxMoney * ns.hackAnalyze(server)) / (totalTime / 1000);
-    const baseScore = (moneyPerSecond / securityPenalty) * timeMultiplier;
-
-    // Calculate required threads
-    const requiredThreads = {
-        weaken: calculateRequiredThreads(ns, server, 'weaken'),
-        grow: calculateRequiredThreads(ns, server, 'grow'),
-        hack: calculateRequiredThreads(ns, server, 'hack')
-    };
-    const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
-
-    // Get deployable servers and calculate total available RAM
-    const deployableServers = getDeployableServers(ns, server, true, false);
-    const totalAvailableRam = deployableServers.reduce((sum, s) => sum + getAvailableRam(ns, s), 0);
-    
-    // Calculate average RAM needed per thread (considering all script types)
-    const avgRamPerThread = (scriptRams.weaken + scriptRams.grow + scriptRams.hack) / 3;
-    const maxPossibleThreads = Math.floor(totalAvailableRam / avgRamPerThread);
-
-    // Apply a scaling factor based on thread availability
-    const threadAvailabilityRatio = maxPossibleThreads / Math.max(1, totalRequiredThreads);
-    const threadScalingFactor = Math.min(1, threadAvailabilityRatio);
-
-    return baseScore * threadScalingFactor;
-} 
 
 export function getServerMaxRam(ns, server) {
     if (server === "home") return ns.getServerMaxRam(server) - 16; // Reserve 16GB on home server

@@ -22,7 +22,9 @@ export async function main(ns) {
                 return (server !== "home" && !server.startsWith("pserv-"));
             })
             .forEach(server => {
-                hackServer(ns, server)
+                if (hackServer(ns, server)) {
+                    log(ns, `INFO: Gained root access on ${server}`, true);
+                }
             });
 
         if (loop) {

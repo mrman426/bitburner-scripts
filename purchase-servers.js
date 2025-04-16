@@ -1,4 +1,4 @@
-import { log } from "./utils/console.js";
+import { formatMoney, log } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -66,8 +66,13 @@ export async function main(ns) {
 
         // Don't buy servers with less RAM than the owned server with the most RAM
         if (maxAffordableRam <= maxOwnedRam && maxAffordableRam < maxGameRam) {
-            log(ns, `WARNINIG: Not purchasing a server with ${maxAffordableRam}GB RAM as it is less than or equal to the maximum owned server RAM (${maxOwnedRam}GB). Checking again in ${sleepTime / 1000} seconds...`, verbose);
-            await ns.sleep(sleepTime);
+            log(ns, `WARNINIG: Not purchasing a server with ${maxAffordableRam}GB RAM for ${formatMoney(ns, maxAffordableCost)} as it is less than or equal to the maximum owned server RAM (${maxOwnedRam}GB).`, verbose);
+
+            if (loop) {
+                log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
+                await ns.sleep(sleepTime);
+            }
+
             continue;
         }
 
@@ -102,7 +107,12 @@ export async function main(ns) {
                 
                 if (!ns.deleteServer(worstServer)) {
                     log(ns, `ERROR: Cannot sell server`, verbose);
-                    await ns.sleep(sleepTime);
+
+                    if (loop) {
+                        log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
+                        await ns.sleep(sleepTime);
+                    }
+            
                     continue;
                 }
                 // Wait a short time to ensure deletion is complete
@@ -110,8 +120,13 @@ export async function main(ns) {
                 // Update the existing servers list
                 existingServers.splice(existingServers.indexOf(worstServer), 1);
             } else {
-                log(ns, `WARNING: All existing servers have more RAM than what we can afford. Checking again in ${sleepTime/1000} seconds...`, verbose);
-                await ns.sleep(sleepTime);
+                log(ns, `WARNING: All existing servers have more RAM than what we can afford.`, verbose);
+
+                if (loop) {
+                    log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
+                    await ns.sleep(sleepTime);
+                }
+        
                 continue;
             }
         }
@@ -128,29 +143,41 @@ export async function main(ns) {
 
             const serverName = serverPrefix + nextServerNum;
             ns.purchaseServer(serverName, maxGameRam);
-            log(ns, `Purchased server: ${serverName} with ${maxGameRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, verbose);
+            log(ns, `SUCCESS: Purchased server: ${serverName} with ${maxGameRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, verbose);
 
-            // Short sleep before next iteration
-            await ns.sleep(sleepTime);
+            if (loop) {
+                log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
+                await ns.sleep(sleepTime);
+            }
+
             continue;
         }
         
         // Calculate if we should purchase a server
-        if (money >= maxAffordableCost) {
-            // Find the next available server number
-            let nextServerNum = 0;
-            while (existingServers.includes(serverPrefix + nextServerNum)) {
-                nextServerNum++;
+        if (money < maxAffordableCost) {
+            log(ns, `Not enough money to purchase a server. Need $${ns.formatNumber(maxAffordableCost)} for ${maxAffordableRam}GB RAM.`, verbose);
+
+            if (loop) {
+                log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
+                await ns.sleep(sleepTime);
             }
-            
-            const serverName = serverPrefix + nextServerNum;
-            ns.purchaseServer(serverName, maxAffordableRam);
-            log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, true);
-        } else {
-            log(ns, `Not enough money to purchase a server. Need $${ns.formatNumber(maxAffordableCost)} for ${maxAffordableRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
+
+            continue;
         }
 
+        // Find the next available server number
+        let nextServerNum = 0;
+        while (existingServers.includes(serverPrefix + nextServerNum)) {
+            nextServerNum++;
+        }
+        
+        const serverName = serverPrefix + nextServerNum;
+        ns.purchaseServer(serverName, maxAffordableRam);
+        log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, true);
+        
         // Sleep before next iteration
-        await ns.sleep(sleepTime);
+        if (loop) {
+            await ns.sleep(sleepTime);
+        }
     } while (loop);
 }
