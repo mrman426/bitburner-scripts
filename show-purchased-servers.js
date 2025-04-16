@@ -1,9 +1,10 @@
-import { getAvailableRam } from "./utils/server.js";
+import { getAllServers, getAvailableRam } from "./utils/server.js";
 import { formatRam, formatMoney, formatPercent, listView, detailView } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
-    const purchasedServers = ns.getPurchasedServers();
+    const purchasedServers = getAllServers(ns)
+        .filter(server => server.startsWith("pserv-") || server === "home");
     
     if (purchasedServers.length === 0) {
         ns.tprint("No purchased servers found.");
