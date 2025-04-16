@@ -71,6 +71,13 @@ export async function main(ns) {
             continue;
         }
 
+        // Check if all servers have maxGameRam
+        const allMaxedOut = existingServers.every(server => ns.getServerMaxRam(server) === maxGameRam);
+        if (allMaxedOut && existingServers.length === maxServers) {
+            log(ns, `INFO: All ${maxServers} servers have reached the maximum RAM (${maxGameRam}GB). Exiting script.`, true);
+            break;
+        }
+
         if (availableSlots <= 0) {
             // Find the server with the least RAM (only considering servers with our prefix)
             let worstServer = null;
@@ -128,23 +135,20 @@ export async function main(ns) {
             continue;
         }
         
-        // Calculate how many servers we can actually buy (limited by slots and money)
-        const serversToBuy = Math.min(Math.floor(money / maxAffordableCost), maxServers - existingServers.length);
+        // Calculate if we should purchase a server
+        const buyServer = money >= maxAffordableCost;
         const totalCost = serversToBuy * maxAffordableCost;
 
-        if (serversToBuy > 0) {
+        if (buyServer) {
             // Find the next available server number
             let nextServerNum = 0;
             while (existingServers.includes(serverPrefix + nextServerNum)) {
                 nextServerNum++;
             }
             
-            // Purchase servers
-            for (let i = 0; i < serversToBuy; i++) {
-                const serverName = serverPrefix + (nextServerNum + i);
-                ns.purchaseServer(serverName, maxAffordableRam);
-                log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(totalCost)}`, verbose);
-            }
+            const serverName = serverPrefix + nextServerNum;
+            ns.purchaseServer(serverName, maxAffordableRam);
+            log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(totalCost)}`, true);
         } else {
             log(ns, `Not enough money to purchase a server. Need $${ns.formatNumber(maxAffordableCost)} for ${maxAffordableRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
         }
