@@ -121,8 +121,12 @@ export async function main(ns) {
         log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Grow: ${totalDeployed.grow}] [Weaken: ${totalDeployed.weaken}]`, verbose);
     
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
-            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Waiting 30 seconds before retrying...", verbose);
-            await ns.sleep(30000);
+            log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations.", verbose);
+
+            if (loop) {
+                log(ns, "INFO: Waiting 10 seconds before retrying...", verbose);
+                await ns.sleep(10000);
+            }
         }
 
         if (loop) {
