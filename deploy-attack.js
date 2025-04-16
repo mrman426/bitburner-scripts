@@ -27,7 +27,7 @@ export async function main(ns) {
     const scriptRam = ns.getScriptRam("attack.js");
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
-    const maxThreads = 150;
+    const maxThreads = 350;
 
     do {
         let totalThreads = 0;
