@@ -21,7 +21,7 @@ export async function main(ns) {
             const maxRam = ns.getServerMaxRam(server);
             const availableRam = getAvailableRam(ns, server);
             const usedRam = maxRam - availableRam;
-            const cost = ns.getPurchasedServerCost(maxRam);
+            const cost = server === "home" ? 0 : ns.getPurchasedServerCost(maxRam);
 
             totalMaxRam += maxRam;
             totalUsedRam += usedRam;
