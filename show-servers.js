@@ -1,5 +1,5 @@
-import { getAllServers, findPathToServer, calculateRequiredThreads, getRunningAttacks } from "./utils/server.js";
-import { listView, detailView, formatRam, formatMoney, formatDelay, formatNumber } from "./utils/console.js";
+import { getAllServers, findPathToServer, calculateRequiredThreads, getRunningPrograms } from "./utils/server.js";
+import { listView, detailView, formatRam, formatMoney, formatDelay } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -14,7 +14,7 @@ export function autocomplete(data, flags) {
 export async function main(ns) {
     const target = ns.args[0];
     const servers = getAllServers(ns);
-    const attacks = getRunningAttacks(ns, servers);
+    const attacks = getRunningPrograms(ns, servers, ["attack.js", "hack.js", "grow.js", "weaken.js"]);
 
     // Special case for home server
     if (target === "home") {

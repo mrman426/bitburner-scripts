@@ -1,9 +1,9 @@
-import { getAllServers, getRunningShares } from "./utils/server.js";
+import { getAllServers, getRunningPrograms } from "./utils/server.js";
 import { listView, formatNumber } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
-    const shares = getRunningShares(ns, getAllServers(ns));
+    const shares = getRunningPrograms(ns, getAllServers(ns), ["share.js"]);
     
     if (shares.size === 0) {
         ns.tprint("No shares currently running");

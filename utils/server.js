@@ -345,13 +345,13 @@ export function calculateRequiredThreads(ns, target, operation) {
 }
 
 /** @param {NS} ns */
-export function getRunningAttacks(ns, allServers) {
+export function getRunningPrograms(ns, allServers, types = ["attack.js", "grow.js", "weaken.js", "hack.js"]) {
     const attacks = new Map(); // target -> {threads, servers}
     
     for (const server of allServers) {
         const processes = ns.ps(server);
         for (const process of processes) {
-            if (process.filename === "attack.js" || process.filename === "grow.js" || process.filename === "weaken.js" || process.filename === "hack.js") {
+            if (types.includes(process.filename)) {
                 const target = process.args[0];
                 if (!attacks.has(target)) {
                     attacks.set(target, { threads: 0, servers: new Set() });
@@ -365,24 +365,3 @@ export function getRunningAttacks(ns, allServers) {
     
     return attacks;
 }
-
-/** @param {NS} ns */
-export function getRunningShares(ns, allServers) {
-    const shares = new Map(); // target -> {threads}
-    
-    for (const server of allServers) {
-        const processes = ns.ps(server);
-        for (const process of processes) {
-            if (process.filename === "share.js") {
-                if (!shares.has(server)) {
-                    shares.set(server, { threads: 0 });
-                }
-                const share = shares.get(server);
-                share.threads += process.threads;
-            }
-        }
-    }
-    
-    return shares;
-}
-

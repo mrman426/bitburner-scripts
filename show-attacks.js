@@ -1,9 +1,9 @@
-import { getAllServers, getRunningAttacks } from "./utils/server.js";
+import { getAllServers, getRunningPrograms } from "./utils/server.js";
 import { listView, formatMoney } from "./utils/console.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
-    const attacks = getRunningAttacks(ns, getAllServers(ns));
+    const attacks = getRunningPrograms(ns, getAllServers(ns), ["attack.js", "hack.js", "grow.js", "weaken.js"]);
     
     if (attacks.size === 0) {
         ns.tprint("No attacks currently running");
