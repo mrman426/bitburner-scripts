@@ -1,4 +1,4 @@
-import { formatMoney, log } from "./utils/console.js";
+import { formatMoney, formatRam, log } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -28,26 +28,33 @@ export async function main(ns) {
         // Find the maximum RAM we can afford for one server
         let maxAffordableRam = 8;
         let maxAffordableCost = ns.getPurchasedServerCost(maxAffordableRam);
+        let nextAffordableRam = 0;
+        let nextAffordableCost = 0;
         
         // Keep doubling RAM until we can't afford it
         while (true) {
-            const nextRam = maxAffordableRam * 2;
-            const nextCost = ns.getPurchasedServerCost(nextRam);
+            nextAffordableRam = maxAffordableRam * 2;
+            nextAffordableCost = ns.getPurchasedServerCost(nextAffordableRam);
             
-            if (nextCost > money) {
+            if (nextAffordableCost > money) {
                 break;
             }
             
-            maxAffordableRam = nextRam;
-            maxAffordableCost = nextCost;
+            maxAffordableRam = nextAffordableRam;
+            maxAffordableCost = nextAffordableCost;
         }
 
         log(ns, `========================================`, verbose);
 
         // Don't buy servers with less than 64GB RAM
         if (maxAffordableRam < minRam) {
-            log(ns, `WARNINIG: Not enough money to buy a server with at least ${minRam}GB RAM. Checking again in ${sleepTime/1000} seconds...`, verbose);
-            await ns.sleep(sleepTime);
+            log(ns, `WARNINIG: Not enough money to buy a server with at least ${minRam}GB RAM.`, verbose);
+
+            if (loop) {
+                log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
+                await ns.sleep(sleepTime);
+            }
+
             continue;
         }
         
@@ -66,7 +73,7 @@ export async function main(ns) {
 
         // Don't buy servers with less RAM than the owned server with the most RAM
         if (maxAffordableRam <= maxOwnedRam && maxAffordableRam < maxGameRam) {
-            log(ns, `WARNINIG: Not purchasing a server with ${maxAffordableRam}GB RAM for ${formatMoney(ns, maxAffordableCost)} as it is less than or equal to the maximum owned server RAM (${maxOwnedRam}GB).`, verbose);
+            log(ns, `WARNINIG: Not purchasing a server with ${formatRam(ns, maxAffordableRam)} RAM for ${formatMoney(ns, maxAffordableCost)} as it is less than or equal to the maximum owned server RAM (${formatRam(ns, maxOwnedRam)}). Need ${formatRam(ns, maxOwnedRam*2)} RAM for ${formatMoney(ns, ns.getPurchasedServerCost(maxOwnedRam*2))}.`, verbose);
 
             if (loop) {
                 log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
@@ -79,7 +86,7 @@ export async function main(ns) {
         // Check if all servers have maxGameRam
         const allMaxedOut = existingServers.every(server => ns.getServerMaxRam(server) === maxGameRam);
         if (allMaxedOut && existingServers.length === maxServers) {
-            log(ns, `INFO: All ${maxServers} servers have reached the maximum RAM (${maxGameRam}GB). Exiting script.`, true);
+            log(ns, `INFO: All ${maxServers} servers have reached the maximum RAM (${formatRam(ns, maxGameRam)}). Exiting script.`, true);
             break;
         }
 
@@ -100,7 +107,7 @@ export async function main(ns) {
             }
             
             if (worstServer && minRam < maxAffordableRam) {
-                log(ns, `INFO: Selling worst server ${worstServer} with ${minRam}GB RAM to make room for a better one`, verbose);
+                log(ns, `INFO: Selling worst server ${worstServer} with ${formatRam(ns, minRam)}GB RAM to make room for a better one`, verbose);
                 
                 // Kill all running scripts on the server before deletion
                 ns.killall(worstServer);
@@ -133,7 +140,7 @@ export async function main(ns) {
 
         // If maxAffordableRam reaches the game limit, buy one server immediately
         if (maxAffordableRam === maxGameRam) {
-            log(ns, `INFO: Maximum RAM (${maxGameRam}GB) reached. Buying one server immediately.`, verbose);
+            log(ns, `INFO: Maximum RAM (${formatRam(ns, maxGameRam)}) reached. Buying one server immediately.`, verbose);
 
             // Find the next available server number
             let nextServerNum = 0;
@@ -143,7 +150,7 @@ export async function main(ns) {
 
             const serverName = serverPrefix + nextServerNum;
             ns.purchaseServer(serverName, maxGameRam);
-            log(ns, `SUCCESS: Purchased server: ${serverName} with ${maxGameRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, verbose);
+            log(ns, `SUCCESS: Purchased server: ${serverName} with ${formatRam(ns, maxGameRam)} RAM for ${formatMoney(ns, maxAffordableCost)}`, verbose);
 
             if (loop) {
                 log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
@@ -155,7 +162,7 @@ export async function main(ns) {
         
         // Calculate if we should purchase a server
         if (money < maxAffordableCost) {
-            log(ns, `Not enough money to purchase a server. Need $${ns.formatNumber(maxAffordableCost)} for ${maxAffordableRam}GB RAM.`, verbose);
+            log(ns, `Not enough money to purchase a server. Need ${formatMoney(ns, maxAffordableCost)} for ${formatRam(ns, maxAffordableRam)} RAM.`, verbose);
 
             if (loop) {
                 log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
@@ -173,7 +180,7 @@ export async function main(ns) {
         
         const serverName = serverPrefix + nextServerNum;
         ns.purchaseServer(serverName, maxAffordableRam);
-        log(ns, `Purchased server: ${serverName} with ${maxAffordableRam}GB RAM for $${ns.formatNumber(maxAffordableCost)}`, true);
+        log(ns, `Purchased server: ${serverName} with ${formatRam(maxAffordableRam)} RAM for ${formatMoney(ns, maxAffordableCost)}`, true);
         
         // Sleep before next iteration
         if (loop) {

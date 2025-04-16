@@ -1,4 +1,5 @@
 import { getAllServers, hackServer } from "./utils/server.js";
+import { log } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
