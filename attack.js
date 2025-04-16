@@ -63,8 +63,12 @@ export async function main(ns) {
             // Only hack if money is above minimum threshold
             ns.print(`INFO: Hacking...`);
             const stolen = await ns.hack(target);
-            if (verbose || verboseHacked) {
-                ns.tprint(`${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`);
+            const message = `${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`;
+            if (verbose) {
+                ns.tprint(message);
+            }
+            if (verboseHacked) {
+                ns.toast(message);
             }
         }
     }

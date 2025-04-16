@@ -15,7 +15,7 @@ export async function main(ns) {
     ns.disableLog("ALL");
 
     const verbose = ns.args.includes("--verbose");
-    const verboseHacked = verbose || ns.args.includes("--verbose-hacked");
+    const verboseHacked = ns.args.includes("--verbose-hacked");
     const loop = ns.args.includes("--loop");
 
     // Get script RAM requirements
@@ -111,7 +111,7 @@ export async function main(ns) {
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, hackWaitTime, verboseHacked);
+                const pid = ns.exec("hack.js", server, hackThreads, target, hackWaitTime, verbose, verboseHacked);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
