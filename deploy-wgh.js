@@ -1,4 +1,4 @@
-import { getAllServers, getDeployServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningAttacks, hackServer } from "./utils/server.js";
+import { getAllServers, getDeployServers, getServerAvailableRam, calculateRequiredThreads, getServerScores, getRunningPrograms, hackServer } from "./utils/server.js";
 import { log } from "./utils/console.js";
 
 /**
@@ -40,7 +40,7 @@ export async function main(ns) {
         });
 
         // Get running attacks to avoid targeting servers already being attacked
-        const runningAttacks = getRunningAttacks(ns, allServers);
+        const runningAttacks = getRunningPrograms(ns, allServers, ["hack.js", "grow.js", "weaken.js"]);
         
         // Get server scores and filter out servers under attack
         const serverScores = getServerScores(ns, potentialTargets)
