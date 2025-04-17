@@ -187,15 +187,15 @@ export function getServerAvailableRam(ns, server) {
  * @return {Object}
  */
 export function calculateAttackThreads(ns, target, hackFraction = 0.25) {
-    const percentStolenPerThread = ns.hackAnalyze(target); // percent of money stolen with a single thread
-    if (percentStolenPerThread <= 0) {
+    const fractionStolenPerThread = ns.hackAnalyze(target); // fraction of money stolen with a single thread
+    if (fractionStolenPerThread <= 0) {
         return {hack: 0, weaken: 0, grow: 0, growWeaken: 0};
     }
 
-    const h = Math.floor(hackFraction / percentStolenPerThread) || 0.0001; // threads to hack the amount we want, floor so that we don't over-hack
-    const hackedFraction = h * percentStolenPerThread; // < ~0.8 - the percent we actually hacked
+    const h = Math.floor(hackFraction / fractionStolenPerThread) || 0.0001; // threads to hack the amount we want, floor so that we don't over-hack
+    const hackedFraction = h * fractionStolenPerThread; // the fraction we actually hacked
     const remainingPercent = Math.max(0.01, 1 - hackedFraction); // Ensure remainingPercent is never <= 0
-    const growthRequired = 1 / remainingPercent; // Calculate growth required safely
+    const growthRequired = 1 / Math.max(0.01, remainingPercent); // Calculate growth required
     const growThreadsRequired = ns.growthAnalyze(target, growthRequired); // how many threads to grow the money by ~5x
     const correctionThreads = Math.ceil(Math.max(1, h * 0.5)); // some threads in case there is a misfire, the more hacked threads the more correction threads
     const changePerWeakenThread = 0.002;

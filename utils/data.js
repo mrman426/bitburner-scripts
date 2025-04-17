@@ -17,7 +17,7 @@ export async function saveData(ns, data) {
     do {
         write = dataPort.tryWrite(JSON.stringify(data))
         if (!write) {
-            ns.print("Port 1 is full, waiting to write data")
+            ns.tprint("WARNING: Port 1 is full, waiting to write data. Are you running 'collect-data.js'?")
             await ns.sleep(1000)
         }
     } while(!write)
