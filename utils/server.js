@@ -234,18 +234,22 @@ export function calculateRequiredThreads(ns, target, operation) {
             
             // Calculate threads needed for this hack amount
             return Math.ceil(hackAmount / (hackPercent * maxMoney));
-        
-        case 'grow':
-            if (currentMoney >= maxMoney * 0.9) return 0;
-            const growthNeeded = maxMoney / currentMoney;
-            const growThreads = ns.growthAnalyze(target, growthNeeded);
-            return Math.ceil(growThreads);
-        
+
         case 'weaken':
             if (currentSecurity <= minSecurity + 1) return 0;
             const securityDiff = currentSecurity - minSecurity;
             const weakenThreads = securityDiff / 0.05; // Each weaken reduces security by 0.05
             return Math.ceil(weakenThreads);
+        
+        case 'grow':
+            if (currentMoney >= maxMoney * 0.9) return 0;
+            const growThreads = ns.growthAnalyze(target, maxMoney / currentMoney);
+            return Math.ceil(growThreads);
+
+        case 'growWeaken':
+            if (currentMoney >= maxMoney * 0.9) return 0;
+            const growWeakenThreads = ns.growthAnalyze(target, maxMoney / currentMoney) * 2;
+            return Math.ceil(growWeakenThreads);
     
         default:
             return 0;

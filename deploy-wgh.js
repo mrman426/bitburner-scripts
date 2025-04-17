@@ -62,23 +62,25 @@ export async function main(ns) {
         const requiredThreads = {
             hack: calculateRequiredThreads(ns, target, 'hack'),
             grow: calculateRequiredThreads(ns, target, 'grow'),
-            weaken: calculateRequiredThreads(ns, target, 'weaken')
+            weaken: calculateRequiredThreads(ns, target, 'weaken'),
+            grow: calculateRequiredThreads(ns, target, 'growWeaken'),
         };
 
         // Calculate timing for operations
         const weakenTime = ns.getWeakenTime(target);
         const growTime = ns.getGrowTime(target);
         const hackTime = ns.getHackTime(target);
+        const hackWaitTime = weakenTime - hackTime - 500;
         const weakenWaitTime = 0;
-        const growWaitTime = Math.max(weakenTime, growTime) - growTime + 500;
-        const hackWaitTime = Math.max(weakenTime, growTime, hackTime) - hackTime + 1500;
+        const growWaitTime = weakenTime - growTime + 500;
+        const growWeakenWaitTime = 1000;
 
         log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(maxMoney)}] [Time to Attack: ${(attackTime / 1000).toFixed(1)}s]`, verbose);
-        log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Grow: ${requiredThreads.grow}] [Weaken: ${requiredThreads.weaken}]`, verbose);
+        log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Weaken: ${requiredThreads.weaken}] [Grow: ${requiredThreads.grow}] [GrowWeaken: ${requiredThreads.growWeaken}]`, verbose);
         
         // Distribute threads across available servers
         let remainingThreads = { ...requiredThreads };
-        let totalDeployed = { hack: 0, grow: 0, weaken: 0 };
+        let totalDeployed = { hack: 0, grow: 0, weaken: 0, growWeaken: 0 };
 
         for (const server of deployServers) {
             const serverRam = getServerAvailableRam(ns, server);
@@ -110,6 +112,19 @@ export async function main(ns) {
                 }
             }
 
+            // Then deploy grow weaken
+            const growWeakenThreads = Math.min(remainingThreads.growWeaken, Math.floor(remainingRam / scriptRams.weaken));
+            if (growWeakenThreads > 0) {
+                await ns.scp("utils/data.js", server);
+                await ns.scp("weaken.js", server);
+                const pid = ns.exec("weaken.js", server, growWeakenThreads, target, growWeakenThreads, growWeakenWaitTime, verbose);
+                if (pid > 0) {
+                    remainingThreads.growWeaken -= growWeakenThreads;
+                    totalDeployed.growWeaken += growWeakenThreads;
+                    remainingRam -= growWeakenThreads * scriptRams.weaken;
+                }
+            }
+
             // Finally deploy hack with sleep time to wait for weaken and grow
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
@@ -124,7 +139,7 @@ export async function main(ns) {
             }
         }
         
-        log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Grow: ${totalDeployed.grow}] [Weaken: ${totalDeployed.weaken}]`, verbose);
+        log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Weaken: ${totalDeployed.weaken}] [Grow: ${totalDeployed.grow}] [GrowWeaken: ${totalDeployed.growWeaken}]`, verbose);
     
         if (Object.values(remainingThreads).some(threads => threads > 0)) {
             log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations.", verbose);
