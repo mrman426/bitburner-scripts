@@ -7,7 +7,7 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--toast-hacked", "--loop"];
+    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--loop"];
 }
 
 /** @param {NS} ns */
@@ -16,7 +16,6 @@ export async function main(ns) {
 
     const verbose = ns.args.includes("--verbose");
     const verboseHacked = ns.args.includes("--verbose-hacked");
-    const toastHacked = ns.args.includes("--toast-hacked");
     const loop = ns.args.includes("--loop");
 
     // Get script RAM requirements

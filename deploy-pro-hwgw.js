@@ -38,7 +38,7 @@ export async function main(ns) {
     const useHackedServersOnly = ns.args.includes("--hacked-only");
     
     // Calculate required threads for each operation
-    const requiredThreads = calculateAttackThreads(ns, target, 0.25)
+    const requiredThreads = calculateAttackThreads(ns, target)
 
     // Calculate timing for operations
     const weakenTime = ns.getWeakenTime(target);

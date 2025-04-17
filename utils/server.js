@@ -186,7 +186,7 @@ export function getServerAvailableRam(ns, server) {
  * @param {number} hackFraction between 0 and 1
  * @return {Object}
  */
-export function calculateAttackThreads(ns, target, hackFraction = 0.25) {
+export function calculateAttackThreads(ns, target, hackFraction = 0.1) {
     const fractionStolenPerThread = ns.hackAnalyze(target); // fraction of money stolen with a single thread
     if (fractionStolenPerThread <= 0) {
         return {hack: 0, weaken: 0, grow: 0, growWeaken: 0};
@@ -228,8 +228,8 @@ export function calculateRequiredThreads(ns, target, operation) {
             const hackPercent = ns.hackAnalyze(target);
             
             // We want to hack enough that the server can grow back within a reasonable time
-            // Aim to hack 25% of max money, but adjust based on growth rate
-            const optimalHackPercent = Math.min(0.25, 0.1 + (growthRate / 100));
+            // Aim to hack 10% of max money, but adjust based on growth rate
+            const optimalHackPercent = Math.min(0.10, 0.1 + (growthRate / 100));
             const hackAmount = maxMoney * optimalHackPercent;
             
             // Calculate threads needed for this hack amount
