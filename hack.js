@@ -6,8 +6,6 @@ export async function main(ns) {
     const threads = ns.args[1]
     const sleepTime = ns.args[2] || 0;
     const verbose = ns.args[3] || false;
-    const verboseHacked = ns.args[4] || false;
-    const toastHacked = ns.args[5] || false;
 
     const startTime = new Date().getTime()
     const hostname = ns.getHostname()
@@ -21,11 +19,8 @@ export async function main(ns) {
     const moneyStolen = await ns.hack(target);
     const message = `${hostname} stole ${ns.formatNumber(moneyStolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}]`;
     
-    if (verbose || verboseHacked) {
+    if (verbose) {
         ns.tprint(`${new Date().toLocaleTimeString()}: ${message}`);
-    }
-    if (toastHacked) {
-        ns.toast(message);
     }
 
     // Save the attack

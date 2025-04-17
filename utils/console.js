@@ -180,7 +180,7 @@ export function formatMoney(ns, money) {
  * @returns {string}
  */
 export function formatRam(ns, gb) {
-    return ns.formatRam(gb * 1000 * 1000 * 1000, 1)
+    return ns.formatRam(gb, 0)
 }
 
 /**
@@ -191,7 +191,7 @@ export function formatRam(ns, gb) {
  * @returns {string}
  */
 export function formatPercent(ns, percent) {
-    return ns.formatPercent(percent, 1) + '%'
+    return ns.formatPercent(percent, 1)
 }
 
 /**
