@@ -22,8 +22,6 @@ export async function main(ns) {
     const target = ns.args[0]
     const threads = ns.args[1]
     const verbose = ns.args[2] || false
-    const verboseHacked = ns.args[3] || false
-    const toastHacked = ns.args[4] || false
 
     if (!target) {
         ns.tprint("ERROR: No target specified")
@@ -73,11 +71,8 @@ export async function main(ns) {
             ns.print(`INFO: Hacking...`)
             moneyStolen = await ns.hack(target)
             const message = `${new Date().toLocaleTimeString()}: ${hostname} stole ${ns.formatNumber(moneyStolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`
-            if (verbose || verboseHacked) {
+            if (verbose) {
                 ns.tprint(message)
-            }
-            if (toastHacked) {
-                ns.toast(message)
             }
             attackType = 'attack.js-hack'
         }

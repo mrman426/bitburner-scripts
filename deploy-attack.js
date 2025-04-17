@@ -61,7 +61,7 @@ export async function main(ns) {
                 log(ns, `Running ${threads} threads on ${server}`, verbose);
                 await ns.scp("utils/data.js", server);
                 await ns.scp("attack.js", server);
-                ns.exec("attack.js", server, threads, target, threads, verbose, verboseHacked, toastHacked);
+                ns.exec("attack.js", server, threads, target, threads, verbose || verboseHacked);
                 totalThreads += threads;
                 await ns.sleep(500);
             }

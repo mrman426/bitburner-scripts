@@ -110,7 +110,7 @@ export async function main(ns) {
             if (hackThreads > 0) {
                 await ns.scp("utils/data.js", server);
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, hackThreads, hackWaitTime, verbose, verboseHacked, toastHacked);
+                const pid = ns.exec("hack.js", server, hackThreads, target, hackThreads, hackWaitTime, verbose || verboseHacked);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
