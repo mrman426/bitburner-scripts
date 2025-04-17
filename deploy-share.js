@@ -7,7 +7,7 @@ import { log } from "./utils/console.js";
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return ["--purchased-only", "--hacked-only", "--verbose", "--loop", "--max-ram"];
+    return ["--purchased-only", "--hacked-only", "--verbose", "--loop", "--max-ram=80"];
 }
 
 /** @param {NS} ns */
@@ -21,8 +21,8 @@ export async function main(ns) {
     const useHackedServersOnly = ns.args.includes("--hacked-only");
 
     // Parse --max-ram argument (default to 80% if not provided)
-    const maxRamToShareArg = ns.args.find(arg => arg.startsWith("--max-ram="));
-    const maxRamToShare = maxRamToShareArg ? parseFloat(maxRamToShareArg.split("=")[1]) / 100 : 0.8;
+    const maxRamArg = ns.args.find(arg => arg.startsWith("--max-ram="));
+    const maxRamToShare = maxRamArg ? parseFloat(maxRamArg.split("=")[1]) / 100 : 0.8;
 
     if (isNaN(maxRamToShare) || maxRamToShare <= 0 || maxRamToShare > 1) {
         ns.tprint("ERROR: Invalid value for --max-ram. Please provide a percentage between 1 and 100.");

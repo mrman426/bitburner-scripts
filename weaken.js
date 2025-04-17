@@ -13,6 +13,6 @@ export async function main(ns) {
     const weakened = await ns.weaken(target);
     
     if (verbose) {
-        ns.tprint(`${ns.getHostname()} weakened ${target} ${ns.formatNumber(weakened)} [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}]`);
+        ns.tprint(`${new Date().toLocaleTimeString()}: ${ns.getHostname()} weakened ${target} ${ns.formatNumber(weakened)} [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}]`);
     }
 }

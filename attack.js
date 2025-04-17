@@ -51,20 +51,20 @@ export async function main(ns) {
             ns.print(`WARNING: security too high (${currentSecurity.toFixed(2)} > ${securityThresh.toFixed(2)}), weakening...`);
             await ns.weaken(target);
             if (verbose) {
-                ns.tprint(`${hostname} weakened ${target} [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}] [required security: ${securityThresh.toFixed(2)}]`);
+                ns.tprint(`${new Date().toLocaleTimeString()}: ${hostname} weakened ${target} [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}] [required security: ${securityThresh.toFixed(2)}]`);
             }
         } else if (currentMoney < moneyThresh) {
             // If money is below threshold, grow it
             ns.print(`WARNING: money below threshold (${ns.formatNumber(currentMoney)} < ${ns.formatNumber(moneyThresh)}), growing...`);
             const growth = await ns.grow(target);
             if (verbose) {
-                ns.tprint(`${hostname} grew ${target} by ${growth.toFixed(2)}x [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}] [required money: ${ns.formatNumber(moneyThresh)}]`);
+                ns.tprint(`${new Date().toLocaleTimeString()}: ${hostname} grew ${target} by ${growth.toFixed(2)}x [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}] [required money: ${ns.formatNumber(moneyThresh)}]`);
             }
         } else {
             // Only hack if money is above minimum threshold
             ns.print(`INFO: Hacking...`);
             const stolen = await ns.hack(target);
-            const message = `${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`;
+            const message = `${new Date().toLocaleTimeString()}: ${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`;
             if (verbose || verboseHacked) {
                 ns.tprint(message);
             }

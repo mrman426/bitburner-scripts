@@ -24,7 +24,7 @@ export async function main(ns) {
             })
             .forEach(server => {
                 if (hackServer(ns, server)) {
-                    log(ns, `INFO: Gained root access on ${server}`, true);
+                    log(ns, `Gained root access on ${server}`, true);
                 }
             });
 

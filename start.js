@@ -4,7 +4,7 @@
  * @returns {string[]} - the array of possible autocomplete options
  */
 export function autocomplete(data, args) {
-    return ["--verbose-hacked"];
+    return ["--verbose-hacked", "--toast-hacked"];
 }
 
 /** @param {NS} ns */
@@ -15,16 +15,16 @@ export async function main(ns) {
     ns.exec("nuke-targets.js", "home", 1, "--loop");
     ns.exec("purchase-servers.js", "home", 1, "--loop");
 
-    ns.exec("deploy-attack.js", "home", 1, "n00dles", "--hacked-only", "--loop", 
+    ns.exec("deploy-attack.js", "home", 1, "n00dles", "--loop", 
         ...(verboseHacked ? ["--verbose-hacked"] : []), 
         ...(verboseToast ? ["--toast-hacked"] : []));
 
 
     while (ns.ps("home").some(proc => proc.filename === "deploy-attack.js")) {
-        await ns.sleep(1000);
+        await ns.sleep(10000);
     }
 
-    ns.exec("deploy-wgh.js", "home", 1, "--purchased-only", "--loop", 
+    ns.exec("deploy-wgh.js", "home", 1, "--loop", 
         ...(verboseHacked ? ["--verbose-hacked"] : []), 
         ...(verboseToast ? ["--toast-hacked"] : []));
 }

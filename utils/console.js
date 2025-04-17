@@ -158,7 +158,7 @@ function formatProperty(property) {
  * @returns {string}
  */
 export function formatNumber(ns, number) {
-    return ns.nFormat(number, '0.0a')
+    return ns.formatNumber(number, 1)
 }
 
 /**
@@ -169,7 +169,7 @@ export function formatNumber(ns, number) {
  * @returns {string}
  */
 export function formatMoney(ns, money) {
-    return ns.nFormat(money, '$0.0a')
+    return '$' + ns.formatNumber(money, 1)
 }
 
 /**
@@ -180,7 +180,7 @@ export function formatMoney(ns, money) {
  * @returns {string}
  */
 export function formatRam(ns, gb) {
-    return ns.nFormat(gb * 1000 * 1000 * 1000, '0.0b')
+    return ns.formatRam(gb * 1000 * 1000 * 1000, 1)
 }
 
 /**
@@ -191,7 +191,7 @@ export function formatRam(ns, gb) {
  * @returns {string}
  */
 export function formatPercent(ns, percent) {
-    return ns.nFormat(percent, '0%')
+    return ns.formatPercent(percent, 1) + '%'
 }
 
 /**

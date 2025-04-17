@@ -16,7 +16,7 @@ export async function main(ns) {
     const message = `${ns.getHostname()} stole ${ns.formatNumber(hacked)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)}]`;
     
     if (verbose || verboseHacked) {
-        ns.tprint(message);
+        ns.tprint(`${new Date().toLocaleTimeString()}: ${message}`);
     }
     if (toastHacked) {
         ns.toast(message);

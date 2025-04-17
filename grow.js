@@ -13,6 +13,6 @@ export async function main(ns) {
     const grew = await ns.grow(target);
     
     if (verbose) {
-        ns.tprint(`${ns.getHostname()} grew ${target} by ${grew.toFixed(2)}x [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}]`);
+        ns.tprint(`${new Date().toLocaleTimeString()}: ${ns.getHostname()} grew ${target} by ${grew.toFixed(2)}x [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))}]`);
     }
 }

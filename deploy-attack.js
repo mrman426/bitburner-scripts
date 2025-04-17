@@ -8,7 +8,7 @@ import { log } from "./utils/console.js";
  */
 export function autocomplete(data, args) {
     if (args.length === 1) return data.servers;
-    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--toast-hacked", "--loop"];
+    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--toast-hacked", "--loop", "--max-threads=350"];
 }
 
 /** @param {NS} ns */
@@ -28,7 +28,10 @@ export async function main(ns) {
     const scriptRam = ns.getScriptRam("attack.js");
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
-    const maxThreads = 350;
+
+    // Parse --max-threads argument (default to 80% if not provided)
+    const maxThreadsArg = ns.args.find(arg => arg.startsWith("--max-ram="));
+    const maxThreads = maxThreadsArg ? parseFloat(maxThreadsArg.split("=")[1]) : 350;
 
     do {
         let totalThreads = 0;
