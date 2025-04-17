@@ -18,7 +18,7 @@ export async function main(ns) {
     const minRam = 64; // Mimum RAM to buy
     const maxServers = 25; // Maximum number of servers you can own
     const serverPrefix = "pserv-"; // Prefix for purchased servers
-    const sleepTime = 30000; // Sleep for 30 seconds between checks
+    const sleepTime = 60000; // Sleep for 60 seconds between checks
     const maxGameRam = 1048576; // Maximum RAM allowed in the game
 
     do {
@@ -153,13 +153,26 @@ export async function main(ns) {
             log(ns, `SUCCESS: Purchased server: ${serverName} with ${formatRam(ns, maxGameRam)} RAM for ${formatMoney(ns, maxAffordableCost)}`, verbose);
 
             if (loop) {
-                log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
-                await ns.sleep(sleepTime);
+                log(ns, `INFO: Checking again in ${1000 / 1000} seconds...`, verbose)
+                await ns.sleep(1000);
             }
 
             continue;
         }
         
+        // Check if we already own 4 servers of the same size (except maxGameRam)
+        const sameSizeServers = existingServers.filter(server => ns.getServerMaxRam(server) === maxAffordableRam).length;
+        if (sameSizeServers >= 4) {
+            log(ns, `INFO: Already own 4 servers with ${formatRam(ns, maxAffordableRam)} RAM. Skipping purchase.`, verbose);
+
+            if (loop) {
+                log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose);
+                await ns.sleep(sleepTime);
+            }
+
+            continue;
+        }
+
         // Calculate if we should purchase a server
         if (money < maxAffordableCost) {
             log(ns, `Not enough money to purchase a server. Need ${formatMoney(ns, maxAffordableCost)} for ${formatRam(ns, maxAffordableRam)} RAM.`, verbose);
