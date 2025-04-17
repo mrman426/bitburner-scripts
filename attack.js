@@ -20,6 +20,7 @@ export async function main(ns) {
     const target = ns.args[0];
     const verbose = ns.args[1] || false;
     const verboseHacked = ns.args[2] || false;
+    const toastHacked = ns.args[3] || false;
 
     if (!target) {
         ns.tprint("ERROR: No target specified");
@@ -64,10 +65,10 @@ export async function main(ns) {
             ns.print(`INFO: Hacking...`);
             const stolen = await ns.hack(target);
             const message = `${hostname} stole ${ns.formatNumber(stolen)} from ${target} [new money: ${ns.formatNumber(ns.getServerMoneyAvailable(target))} / ${ns.formatNumber(moneyThresh)}] [new security: ${ns.getServerSecurityLevel(target).toFixed(2)} / ${securityThresh.toFixed(2)}]`;
-            if (verbose) {
+            if (verbose || verboseHacked) {
                 ns.tprint(message);
             }
-            if (verboseHacked) {
+            if (toastHacked) {
                 ns.toast(message);
             }
         }

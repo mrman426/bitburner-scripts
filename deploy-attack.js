@@ -8,7 +8,7 @@ import { log } from "./utils/console.js";
  */
 export function autocomplete(data, args) {
     if (args.length === 1) return data.servers;
-    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--loop"];
+    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--toast-hacked", "--loop"];
 }
 
 /** @param {NS} ns */
@@ -24,6 +24,7 @@ export async function main(ns) {
     const loop = ns.args.includes("--loop");
     const verbose = ns.args.includes("--verbose");
     const verboseHacked = ns.args.includes("--verbose-hacked");
+    const toastHacked = ns.args.includes("--toast-hacked");
     const scriptRam = ns.getScriptRam("attack.js");
     const usePurchasedServersOnly = ns.args.includes("--purchased-only");
     const useHackedServersOnly = ns.args.includes("--hacked-only");
@@ -56,7 +57,7 @@ export async function main(ns) {
             if (threads > 0) {
                 log(ns, `Running ${threads} threads on ${server}`, verbose);
                 await ns.scp("attack.js", server);
-                ns.exec("attack.js", server, threads, target, verbose, verboseHacked);
+                ns.exec("attack.js", server, threads, target, verbose, verboseHacked, toastHacked);
                 totalThreads += threads;
                 await ns.sleep(500);
             }

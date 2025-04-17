@@ -8,7 +8,7 @@ import { log } from "./utils/console.js";
  */
 export function autocomplete(data, args) {
     if (args.length === 1) return data.servers;
-    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--loop"];
+    return ["--purchased-only", "--hacked-only", "--verbose", "--verbose-hacked", "--toast-hacked", "--loop"];
 }
 
 /** @param {NS} ns */
@@ -24,6 +24,7 @@ export async function main(ns) {
     const loop = ns.args.includes("--loop");
     const verbose = ns.args.includes("--verbose");
     const verboseHacked = ns.args.includes("--verbose-hacked");
+    const toastHacked = ns.args.includes("--toast-hacked");
 
     // Get script RAM requirements
     const scriptRams = {
@@ -105,7 +106,7 @@ export async function main(ns) {
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, hackWaitTime, verbose, verboseHacked);
+                const pid = ns.exec("hack.js", server, hackThreads, target, hackWaitTime, verbose, verboseHacked, toastHacked);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;
