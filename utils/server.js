@@ -197,7 +197,7 @@ export function calculateAttackThreads(ns, target, hackFraction = 0.25) {
     const remainingPercent = Math.max(0.01, 1 - hackedFraction); // Ensure remainingPercent is never <= 0
     const growthRequired = 1 / remainingPercent; // Calculate growth required safely
     const growThreadsRequired = ns.growthAnalyze(target, growthRequired); // how many threads to grow the money by ~5x
-    const correctionThreads = Math.ceil(Math.max(1, h * 0.75)); // some threads in case there is a misfire, the more hackedFraction the more threads
+    const correctionThreads = Math.ceil(Math.max(1, h * 0.5)); // some threads in case there is a misfire, the more hacked threads the more correction threads
     const changePerWeakenThread = 0.002;
     const changePerGrowThread = 0.004;
     const changePerHackThread = 0.002;

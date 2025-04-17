@@ -20,7 +20,7 @@ export async function main(ns) {
                 grow: calculateRequiredThreads(ns, server, 'grow'),
                 hack: calculateRequiredThreads(ns, server, 'hack')
             };
-            const proThreads = calculateAttackThreads(ns, server);
+            const proThreads = calculateAttackThreads(ns, server, 0.25);
             const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
             const totalProThreads = proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken;
             const attackTime = ns.getWeakenTime(server);
@@ -36,14 +36,14 @@ export async function main(ns) {
                 Security: `${security.toFixed(1)} / ${minSecurity.toFixed(1)}`,
                 "Money per Attack": `$${ns.formatNumber(moneyPerAttack)}`,
                 "Threads": formatNumber(ns, totalRequiredThreads),
+                // "Threads (W+G+H=T)": `${formatNumber(ns, requiredThreads.weaken)}+${formatNumber(ns, requiredThreads.grow)}+${formatNumber(ns, requiredThreads.hack)}=${formatNumber(ns, totalRequiredThreads)}`,
                 "PThreads": formatNumber(ns, totalProThreads),
-                // "Attack Threads (W+G+H=T)": `${formatNumber(ns, requiredThreads.weaken)}+${formatNumber(ns, requiredThreads.grow)}+${formatNumber(ns, requiredThreads.hack)}=${formatNumber(ns, totalRequiredThreads)}`,
-                // "Pro Threads (H+W+G+W=T)": `${formatNumber(ns, proThreads.hack)}+${formatNumber(ns, proThreads.weaken)}+${formatNumber(ns, proThreads.grow)}+${formatNumber(ns, proThreads.growWeaken)}=${formatNumber(ns, totalProThreads)}`,
+                // "PThreads (H+W+G+W=T)": `${formatNumber(ns, proThreads.hack)}+${formatNumber(ns, proThreads.weaken)}+${formatNumber(ns, proThreads.grow)}+${formatNumber(ns, proThreads.growWeaken)}=${formatNumber(ns, totalProThreads)}`,
                 // "Time to Attack": formatDelay(ns, attackTime) + " (" + Math.round(attackTime/1000) + "s)",
                 "Attack Time": Math.round(attackTime/1000) + "s",
                 "Attacking": attacks.has(server) ? `${attacks.get(server).threads} threads` : "No",
             };
         });
     
-    ns.tprint("=== Top Servers to Attack ===\n" + listView(targets));
+    ns.tprint("=== Targets ===\n" + listView(targets));
 } 
