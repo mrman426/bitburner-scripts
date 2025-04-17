@@ -36,6 +36,12 @@ You can see your attacks with
 run show-attacks.js
 ```
 
+You can see attack history with
+
+```sh
+run report-attacks.js
+```
+
 ### Attack Phase 1
 
 Take an Algorithms course at rothman university to boost hack level
