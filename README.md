@@ -11,9 +11,9 @@ run show-servers.js
 As you get some money buy the TOR router and buy scripts from the darkweb
 
 ```sh
-connect darkweb
-buy -l
-buy -a
+connect darkweb;
+buy -l;
+buy -a;
 ```
 
 Also purchase servers for more RAM
