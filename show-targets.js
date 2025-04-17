@@ -18,10 +18,11 @@ export async function main(ns) {
             const requiredThreads = {
                 weaken: calculateRequiredThreads(ns, server, 'weaken'),
                 grow: calculateRequiredThreads(ns, server, 'grow'),
-                hack: calculateRequiredThreads(ns, server, 'hack')
+                hack: calculateRequiredThreads(ns, server, 'hack'),
+                growWeaken: calculateRequiredThreads(ns, server, 'growWeaken'),
             };
             const proThreads = calculateAttackThreads(ns, server, 0.25);
-            const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
+            const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack + requiredThreads.growWeaken;
             const totalProThreads = proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken;
             const attackTime = ns.getWeakenTime(server);
             const availableMoney = ns.getServerMoneyAvailable(server);

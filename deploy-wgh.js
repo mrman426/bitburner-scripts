@@ -63,7 +63,7 @@ export async function main(ns) {
             hack: calculateRequiredThreads(ns, target, 'hack'),
             grow: calculateRequiredThreads(ns, target, 'grow'),
             weaken: calculateRequiredThreads(ns, target, 'weaken'),
-            grow: calculateRequiredThreads(ns, target, 'growWeaken'),
+            growWeaken: calculateRequiredThreads(ns, target, 'growWeaken'),
         };
 
         // Calculate timing for operations
