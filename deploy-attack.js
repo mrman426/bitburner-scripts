@@ -59,8 +59,9 @@ export async function main(ns) {
             // Run the attack script if we have enough RAM
             if (threads > 0) {
                 log(ns, `Running ${threads} threads on ${server}`, verbose);
+                await ns.scp("utils/data.js", server);
                 await ns.scp("attack.js", server);
-                ns.exec("attack.js", server, threads, target, verbose, verboseHacked, toastHacked);
+                ns.exec("attack.js", server, threads, target, threads, verbose, verboseHacked, toastHacked);
                 totalThreads += threads;
                 await ns.sleep(500);
             }

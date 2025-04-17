@@ -87,8 +87,9 @@ export async function main(ns) {
             // Deploy weaken first
             const weakenThreads = Math.min(remainingThreads.weaken, Math.floor(remainingRam / scriptRams.weaken));
             if (weakenThreads > 0) {
+                await ns.scp("utils/data.js", server);
                 await ns.scp("weaken.js", server);
-                const pid = ns.exec("weaken.js", server, weakenThreads, target, weakenWaitTime, verbose);
+                const pid = ns.exec("weaken.js", server, weakenThreads, target, weakenThreads, weakenWaitTime, verbose);
                 if (pid > 0) {
                     remainingThreads.weaken -= weakenThreads;
                     totalDeployed.weaken += weakenThreads;
@@ -99,8 +100,9 @@ export async function main(ns) {
             // Then deploy grow
             const growThreads = Math.min(remainingThreads.grow, Math.floor(remainingRam / scriptRams.grow));
             if (growThreads > 0) {
+                await ns.scp("utils/data.js", server);
                 await ns.scp("grow.js", server);
-                const pid = ns.exec("grow.js", server, growThreads, target, growWaitTime, verbose);
+                const pid = ns.exec("grow.js", server, growThreads, target, growThreads, growWaitTime, verbose);
                 if (pid > 0) {
                     remainingThreads.grow -= growThreads;
                     totalDeployed.grow += growThreads;
@@ -111,8 +113,9 @@ export async function main(ns) {
             // Finally deploy hack with sleep time to wait for weaken and grow
             const hackThreads = Math.min(remainingThreads.hack, Math.floor(remainingRam / scriptRams.hack));
             if (hackThreads > 0) {
+                await ns.scp("utils/data.js", server);
                 await ns.scp("hack.js", server);
-                const pid = ns.exec("hack.js", server, hackThreads, target, hackWaitTime, verbose, verboseHacked, toastHacked);
+                const pid = ns.exec("hack.js", server, hackThreads, target, hackThreads, hackWaitTime, verbose, verboseHacked, toastHacked);
                 if (pid > 0) {
                     remainingThreads.hack -= hackThreads;
                     totalDeployed.hack += hackThreads;

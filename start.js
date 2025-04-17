@@ -12,6 +12,7 @@ export async function main(ns) {
     const verboseHacked = ns.args.includes("--verbose-hacked");
     const verboseToast = ns.args.includes("--toast-hacked");
 
+    ns.exec("collect-data.js", "home", 1);
     ns.exec("nuke-targets.js", "home", 1, "--loop");
     ns.exec("purchase-servers.js", "home", 1, "--loop");
 
