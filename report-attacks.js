@@ -1,5 +1,5 @@
 /** @param {NS} ns */
-import { listView, formatMoney } from '/utils/console.js'
+import { listView, formatMoney, formatNumber } from '/utils/console.js'
 
 export async function main(ns) {
     const filename = '/data/attacks.txt'
@@ -29,7 +29,6 @@ export async function main(ns) {
         const target = attack.target
         const threads = parseInt(attack.threads, 10)
         const moneyHacked = parseFloat(attack.moneyHacked)
-        ns.tprint(moneyHacked)
 
         if (!report[target]) {
             report[target] = { target, totalThreads: 0, totalMoneyHacked: 0 }
@@ -42,7 +41,7 @@ export async function main(ns) {
     // Convert report object to an array for listView
     const reportArray = Object.values(report).map(stats => ({
         Target: stats.target,
-        "Threads": stats.totalThreads,
+        "Threads": formatNumber(ns, stats.totalThreads),
         "Money Hacked": formatMoney(ns, stats.totalMoneyHacked),
         "Money/Thread": formatMoney(ns, stats.totalMoneyHacked / stats.totalThreads),
     }))
