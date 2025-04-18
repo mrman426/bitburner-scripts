@@ -93,20 +93,6 @@ export function findPathToServer(ns, targetServer) {
 }
 
 /** @param {NS} ns */
-export function getAvailableRam(ns, server) {
-    const maxRam = ns.getServerMaxRam(server);
-    const usedRam = ns.ps(server).reduce((sum, process) => sum + process.threads * ns.getScriptRam(process.filename), 0);
-    const availableRam = maxRam - usedRam;
-    
-    // Reserve 32GB on home server
-    if (server === "home") {
-        return Math.max(0, availableRam - 32);
-    }
-    
-    return availableRam;
-}
-
-/** @param {NS} ns */
 export function openPorts(ns, server) {
     const programs = [
         { name: "BruteSSH.exe", func: ns.brutessh },
@@ -170,13 +156,22 @@ export function isServerHackable(ns, server, allServers) {
 }
 
 export function getServerMaxRam(ns, server) {
-    if (server === "home") return ns.getServerMaxRam(server) - 16; // Reserve 16GB on home server
+    let serverMaxRam = ns.getServerMaxRam(server);
 
-    return ns.getServerMaxRam(server);
+    if (server === "home") {
+        return serverMaxRam - 32;
+    }
+
+    return serverMaxRam;
+}
+
+
+export function getServerUsedRam(ns, server) {
+    return ns.getServerUsedRam(server);
 }
 
 export function getServerAvailableRam(ns, server) {
-    return getServerMaxRam(ns, server) - ns.getServerUsedRam(server);
+    return getServerMaxRam(ns, server) - getServerUsedRam(ns, server);
 }
 
 /**

@@ -1,4 +1,4 @@
-import { getAllServers, getAvailableRam } from "./utils/server.js";
+import { getAllServers, getServerAvailableRam } from "./utils/server.js";
 import { formatRam, formatMoney, formatPercent, listView, detailView } from "./utils/console.js";
 
 /** @param {NS} ns */
@@ -19,7 +19,7 @@ export async function main(ns) {
         .sort((a, b) => ns.getServerMaxRam(b) - ns.getServerMaxRam(a))
         .map(server => {
             const maxRam = ns.getServerMaxRam(server);
-            const availableRam = getAvailableRam(ns, server);
+            const availableRam = getServerAvailableRam(ns, server);
             const usedRam = maxRam - availableRam;
             const cost = server === "home" ? 0 : ns.getPurchasedServerCost(maxRam);
 
