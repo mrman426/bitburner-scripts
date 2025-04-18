@@ -73,7 +73,7 @@ export async function main(ns) {
 
         // Don't buy servers with less RAM than the owned server with the most RAM
         if (maxAffordableRam < maxOwnedRam && maxAffordableRam < maxGameRam) {
-            log(ns, `WARNINIG: Not purchasing a server with ${formatRam(ns, maxAffordableRam)} RAM for ${formatMoney(ns, maxAffordableCost)} as it is less than the maximum owned server RAM (${formatRam(ns, maxOwnedRam)}).`, verbose);
+            log(ns, `WARNING: Not purchasing a server with ${formatRam(ns, maxAffordableRam)} RAM for ${formatMoney(ns, maxAffordableCost)} as it is less than the maximum owned server RAM (${formatRam(ns, maxOwnedRam)}).`, verbose);
 
             if (loop) {
                 log(ns, `INFO: Checking again in ${sleepTime / 1000} seconds...`, verbose)
