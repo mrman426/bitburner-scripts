@@ -1,5 +1,5 @@
 import { getAllServers, getDeployServers, getServerAvailableRam, calculateAttackThreads, hackServer } from "./utils/server.js";
-import { log } from "./utils/console.js";
+import { formatMoney, log } from "./utils/console.js";
 
 /**
  * @param {AutocompleteData} data - context about the game, useful when autocompleting
@@ -48,13 +48,29 @@ export async function main(ns) {
     const weakenWaitTime = 200;
     const growWaitTime = weakenTime - growTime + 400;
     const growWeakenWaitTime = 600;
+    const maxMoney = ns.getServerMaxMoney(target);
+    const minServerSecurity = ns.getServerMinSecurityLevel(target);
 
-    log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(ns.getServerMaxMoney(target))}] [Time to Attack: ${(ns.getWeakenTime(target) / 1000).toFixed(1)}s]`, verbose);
+    log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(maxMoney)}] [Time to Attack: ${(weakenTime / 1000).toFixed(1)}s]`, verbose);
     log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Weaken: ${requiredThreads.weaken}] [Grow: ${requiredThreads.grow}] [GrowWeaken: ${requiredThreads.growWeaken}]`, verbose);
 
     //const attackTimes = Math.floor(weakenTime * 0.9 / 1000);
     //for (let i=0; i < attackTimes; i++) {
     do {
+
+        // If the money is too low or security too high then break
+        const serverSecurity = ns.getServerSecurityLevel(target);
+        if (serverSecurity > minServerSecurity + 12) {
+            log(ns, `WARNING: Target security ${serverSecurity} is 12 above ${minServerSecurity}, aborting attack on ${target}.`, true);
+            break;
+        }
+
+        const serverMoney = ns.getServerMoneyAvailable(target);
+        if (serverMoney < maxMoney * 0.2) {
+            log(ns, `WARNING: Target money ${formatMoney(ns, serverMoney)} is below 20% of ${formatMoney(ns, maxMoney)}, aborting attack on ${target}.`, true);
+            break;
+        }
+
         const allServers = getAllServers(ns);
         const deployServers = getDeployServers(ns, allServers, true, usePurchasedServersOnly, useHackedServersOnly);
 
