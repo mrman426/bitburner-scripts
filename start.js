@@ -16,6 +16,7 @@ export async function main(ns) {
     ns.exec("collect-data.js", "home", 1);
     ns.exec("nuke-targets.js", "home", 1, "--loop");
     ns.exec("purchase-servers.js", "home", 1, "--loop");
+    ns.exec("hud.js", "home", 1);
 
     if (money < 5000000) {
         ns.exec("deploy-attack.js", "home", 1, "n00dles", "--loop", 
