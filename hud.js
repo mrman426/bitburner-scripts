@@ -1,5 +1,5 @@
-import { formatTime, formatRam, formatNumber } from "./utils/console"
-import { getAllServers, getServerMaxRam, getServerAvailableRam } from "./utils/server"
+import { formatRam, formatNumber, formatPercent, formatDelay } from "./utils/console"
+import { getAllServers, getServerMaxRam, getServerAvailableRam, getRunningPrograms } from "./utils/server" // Import getRunningPrograms
 
 /**
  * Command options
@@ -66,22 +66,38 @@ function getHelp(ns) {
 function getHudData(ns) {
 
     // get total ram on all servers
-
     const servers = getAllServers(ns);
     let totalRam = 0;
     let availableRam = 0;
+
     for (const server of servers) {
         totalRam += getServerMaxRam(ns, server);
         availableRam += getServerAvailableRam(ns, server);
     }
 
+    const runningAttacks = getRunningPrograms(ns, servers, ["attack.js", "hack.js", "grow.js", "weaken.js"]);
+    let attackThreads = 0;
+    for (const attack of runningAttacks.values()) {
+        attackThreads += attack.threads;
+    }
+
+    
+    // Get running programs and calculate total threads
+    const runningShares = getRunningPrograms(ns, servers, ["share.js"]);
+    let shareThreads = 0;
+    for (const share of runningShares.values()) {
+        shareThreads += share.threads;
+    }
+
     return {
-        'Time SLA:': `${formatTime(ns, ns.getTimeSinceLastAug() / 1000, '00:00:00')}`,
-        'RAM:': `${formatRam(ns, availableRam)}/${formatRam(ns, totalRam)}`,
+        'Time SLA:': `${formatDelay(ns, Date.now() - ns.getResetInfo().lastAugReset)}`,
+        'Total RAM:': `${formatRam(ns, totalRam)}`,
+        'Free RAM:': `${formatPercent(ns, availableRam / totalRam)}`,
         //'Script Inc:': `${ns.nFormat(ns.getScriptIncome()[0], '$0.0a')}/sec`,
-        'Script Exp:': `${formatNumber(ns, ns.getScriptExpGain())}/sec`,
+        //'Script Exp:': `${formatNumber(ns, ns.getScriptExpGain())}/sec`,
+        'Attack Threads:': `${formatNumber(ns, attackThreads)}`,
+        'Share Threads:': `${formatNumber(ns, shareThreads)}`,
         'Share Pwr:': `${formatNumber(ns, ns.getSharePower())}`,
-        //'Attacks:': `hack=${currentHackAttacks.length}|prep=${currentPrepAttacks.length}`,
     }
 }
 
