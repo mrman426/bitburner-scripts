@@ -34,9 +34,10 @@ export async function main(ns) {
                     hack: calculateRequiredThreads(ns, server, 'hack'),
                     growWeaken: calculateRequiredThreads(ns, server, 'growWeaken'),
                 };
+                const weakenTime = ns.getWeakenTime(server);
                 const proThreads = calculateAttackThreads(ns, server);
                 const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack + requiredThreads.growWeaken;
-                const totalProThreads = proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken;
+                const totalProThreads = (proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken) * Math.ceil(weakenTime / 1000);
                 const attackTime = ns.getWeakenTime(server);
                 const availableMoney = ns.getServerMoneyAvailable(server);
                 const maxMoney = ns.getServerMaxMoney(server);

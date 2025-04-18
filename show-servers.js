@@ -100,7 +100,7 @@ export async function main(ns) {
             };
             const proThreads = calculateAttackThreads(ns, server);
             const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
-            const totalProThreads = proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken;
+            const totalProThreads = (proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken) * Math.ceil(weakenTime);
             const attackTime = ns.getWeakenTime(server);
     
             return {
