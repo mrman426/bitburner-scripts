@@ -3,14 +3,18 @@
  * @param boolean verbose 
  * @param string message
  */
-export function log(ns, message, verbose = false) {
-    message = formatTime(ns) + ': ' + message
+export function log(ns, message, verbose = false, toast = false) {
+    const timePrefix = formatTime(ns) + ': '
 
-    if (verbose) {
-        ns.tprint(message);
+    if (toast) {
+        ns.toast(message)
     }
 
-    ns.print(message);
+    if (verbose) {
+        ns.tprint(timePrefix + message)
+    }
+
+    ns.print(timePrefix + message)
 }
 
 /**

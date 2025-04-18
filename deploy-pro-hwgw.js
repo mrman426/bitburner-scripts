@@ -61,13 +61,13 @@ export async function main(ns) {
         // If the money is too low or security too high then break
         const serverSecurity = ns.getServerSecurityLevel(target);
         if (serverSecurity > minServerSecurity + 12) {
-            log(ns, `WARNING: Target security ${serverSecurity} is 12 above ${minServerSecurity}, aborting attack on ${target}.`, true);
+            log(ns, `WARNING: Target security ${serverSecurity} is 12 above ${minServerSecurity}, aborting attack on ${target}.`, true, true);
             break;
         }
 
         const serverMoney = ns.getServerMoneyAvailable(target);
         if (serverMoney < maxMoney * 0.2) {
-            log(ns, `WARNING: Target money ${formatMoney(ns, serverMoney)} is below 20% of ${formatMoney(ns, maxMoney)}, aborting attack on ${target}.`, true);
+            log(ns, `WARNING: Target money ${formatMoney(ns, serverMoney)} is below 20% of ${formatMoney(ns, maxMoney)}, aborting attack on ${target}.`, true, true);
             break;
         }
 
