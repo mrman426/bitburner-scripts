@@ -44,11 +44,13 @@ export async function main(ns) {
                 const security = ns.getServerSecurityLevel(server);
                 const minSecurity = ns.getServerMinSecurityLevel(server);
                 const moneyPerAttack = maxMoney * 0.1; // 10% of max money is the target for hack
+                const moneyStatus = availableMoney > maxMoney * 0.8 ? '✓' : '✗';
+                const securityStatus = security < minSecurity + 4 ? '✓' : '✗';
 
                 return {
                     Server: server,
-                    Money: `$${ns.formatNumber(availableMoney)} / $${ns.formatNumber(maxMoney)}`,
-                    Security: `${security.toFixed(1)} / ${minSecurity.toFixed(1)}`,
+                    Money: `${moneyStatus} $${ns.formatNumber(availableMoney)} / $${ns.formatNumber(maxMoney)}`,
+                    Security: `${securityStatus} ${security.toFixed(1)} / ${minSecurity.toFixed(1)}`,
                     "Money per Attack": `$${ns.formatNumber(moneyPerAttack)}`,
                     "Threads": formatNumber(ns, totalRequiredThreads),
                     // "Threads (W+G+H=T)": `${formatNumber(ns, requiredThreads.weaken)}+${formatNumber(ns, requiredThreads.grow)}+${formatNumber(ns, requiredThreads.hack)}=${formatNumber(ns, totalRequiredThreads)}`,

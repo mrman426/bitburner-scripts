@@ -66,15 +66,21 @@ export async function main(ns) {
         };
         const proThreads = calculateAttackThreads(ns, server);
         const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
-        const totalProThreads = (proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken) * Math.ceil(weakenTime);
         const attackTime = ns.getWeakenTime(server);
+        const totalProThreads = (proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken) * Math.ceil(attackTime);
+        const availableMoney = ns.getServerMoneyAvailable(server);
+        const maxMoney = ns.getServerMaxMoney(server);
+        const security = ns.getServerSecurityLevel(server);
+        const minSecurity = ns.getServerMinSecurityLevel(server);
+        const moneyStatus = availableMoney > maxMoney * 0.8 ? '✓' : '✗';
+        const securityStatus = security < minSecurity + 4 ? '✓' : '✗';
 
         // Calculate server details
         const serverDetails = {
             "Server": server,
             "Path": path,
-            Money: `${formatMoney(ns, ns.getServerMoneyAvailable(server))} / ${formatMoney(ns, ns.getServerMaxMoney(server))}`,
-            Security: `${ns.getServerSecurityLevel(server).toFixed(1)} / ${ns.getServerMinSecurityLevel(server).toFixed(1)}`,
+            Money: `${moneyStatus} $${ns.formatNumber(availableMoney)} / $${ns.formatNumber(maxMoney)}`,
+            Security: `${securityStatus} ${security.toFixed(1)} / ${minSecurity.toFixed(1)}`,
             "RAM": formatRam(ns, serverInfo.maxRam),
             "Hack Level": serverInfo.requiredHackingSkill,
             "Root": serverInfo.hasAdminRights ? "Yes" : "No",
@@ -100,13 +106,19 @@ export async function main(ns) {
             };
             const proThreads = calculateAttackThreads(ns, server);
             const totalRequiredThreads = requiredThreads.weaken + requiredThreads.grow + requiredThreads.hack;
-            const totalProThreads = (proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken) * Math.ceil(weakenTime);
             const attackTime = ns.getWeakenTime(server);
-    
+            const totalProThreads = (proThreads.hack + proThreads.weaken + proThreads.grow + proThreads.growWeaken) * Math.ceil(attackTime);
+            const availableMoney = ns.getServerMoneyAvailable(server);
+            const maxMoney = ns.getServerMaxMoney(server);
+            const security = ns.getServerSecurityLevel(server);
+            const minSecurity = ns.getServerMinSecurityLevel(server);
+            const moneyStatus = availableMoney > maxMoney * 0.8 ? '✓' : '✗';
+            const securityStatus = security < minSecurity + 4 ? '✓' : '✗';
+
             return {
                 "Server": server,
-                Money: `${formatMoney(ns, ns.getServerMoneyAvailable(server))} / ${formatMoney(ns, ns.getServerMaxMoney(server))}`,
-                Security: `${ns.getServerSecurityLevel(server).toFixed(1)} / ${ns.getServerMinSecurityLevel(server).toFixed(1)}`,
+                Money: `${moneyStatus} $${ns.formatNumber(availableMoney)} / $${ns.formatNumber(maxMoney)}`,
+                Security: `${securityStatus} ${security.toFixed(1)} / ${minSecurity.toFixed(1)}`,
                 "RAM": formatRam(ns, serverInfo.maxRam),
                 "Hack Level": serverInfo.requiredHackingSkill,
                 "Root": serverInfo.hasAdminRights ? "Yes" : "No",
