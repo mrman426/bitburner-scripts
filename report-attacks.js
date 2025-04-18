@@ -44,7 +44,6 @@ export async function main(ns) {
     const reportArray = Object.values(report)
         .sort((a, b) => (b.totalMoneyHacked / b.totalThreads) - (a.totalMoneyHacked / a.totalThreads))
         .map(stats => {
-            ns.tprint(stats);
             return {
                 Target: stats.target,
                 "Threads": formatNumber(ns, stats.totalThreads ? stats.totalThreads : 0),
