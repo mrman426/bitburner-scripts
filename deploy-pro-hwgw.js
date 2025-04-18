@@ -43,10 +43,11 @@ export async function main(ns) {
     const weakenTime = ns.getWeakenTime(target);
     const growTime = ns.getGrowTime(target);
     const hackTime = ns.getHackTime(target);
+
     const hackWaitTime = weakenTime - hackTime;
-    const weakenWaitTime = 100;
-    const growWaitTime = weakenTime - growTime + 200;
-    const growWeakenWaitTime = 300;
+    const weakenWaitTime = 200;
+    const growWaitTime = weakenTime - growTime + 400;
+    const growWeakenWaitTime = 600;
 
     log(ns, `========================================\nSelected target: ${target} [Max Money: $${ns.formatNumber(ns.getServerMaxMoney(target))}] [Time to Attack: ${(ns.getWeakenTime(target) / 1000).toFixed(1)}s]`, verbose);
     log(ns, `Required Threads: [Hack: ${requiredThreads.hack}] [Weaken: ${requiredThreads.weaken}] [Grow: ${requiredThreads.grow}] [GrowWeaken: ${requiredThreads.growWeaken}]`, verbose);
@@ -119,7 +120,7 @@ export async function main(ns) {
         }
 
         log(ns, `Deployed Threads: [Hack: ${totalDeployed.hack}] [Weaken: ${totalDeployed.weaken}] [Grow: ${totalDeployed.grow}] [GrowWeaken: ${totalDeployed.growWeaken}]`, verbose);
-        await ns.sleep(2000);
+        await ns.sleep(1000);
 
         if (loop && Object.values(remainingThreads).some(threads => threads > 0)) {
             log(ns, "WARNING: Not all required threads could be deployed due to RAM limitations. Waiting 30 seconds before retrying...", verbose);
